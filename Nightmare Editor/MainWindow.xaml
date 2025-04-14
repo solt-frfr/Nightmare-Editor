@@ -14,22 +14,32 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="9*"/>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Grid Grid.Row="2" Panel.ZIndex="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Button Click="Help_Click" Background="Transparent" BorderBrush="Transparent">
+                <Image Source="/Images/help.png"/>
+            </Button>
+            <Button Grid.Column="2" Name="WS" Click="WindowSwap" Background="Transparent" BorderBrush="Transparent">
+                <Image Source="/Images/queue.png" Name="Queue" RenderOptions.BitmapScalingMode="HighQuality"/>
+            </Button>
+        </Grid>
         <Grid Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="5*"/>
-                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button Click="FileOpen_Click" Background="Transparent" BorderBrush="Transparent">
                 <Image Source="/Images/plus.png"/>
             </Button>
             <TextBox Grid.Column="1" Text="logger lol" Name="Log" TextWrapping="WrapWithOverflow" IsReadOnly="True"/>
-            <Button Grid.Column="2" Click="Help_Click" Background="Transparent" BorderBrush="Transparent">
-                <Image Source="/Images/help.png"/>
-            </Button>
         </Grid>
+        <Grid Name="Blackout" Grid.ColumnSpan="2" Grid.RowSpan="3" Panel.ZIndex="1" Visibility="Collapsed" Background="Black" Opacity="0.25"/>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
             <Grid Grid.Row="1">
                 <Grid.ContextMenu>
@@ -49,7 +59,7 @@
                 </StackPanel>
             </Grid>
         </ScrollViewer>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="1">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
             <Grid Grid.Row="1">
                 <Grid.ContextMenu>
                     <ContextMenu>
@@ -72,7 +82,10 @@
                 </StackPanel>
             </Grid>
         </ScrollViewer>
-        <Grid Name="InfoWindow" Grid.RowSpan="2" Grid.Column="2">
+        <Grid Name="QueueWindow" Grid.RowSpan="3" Grid.Column="2" Visibility="Collapsed"> 
+            <Image Source="Images/help.png"/>
+        </Grid>
+        <Grid Name="InfoWindow" Grid.RowSpan="3" Grid.Column="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="0.5*"/>

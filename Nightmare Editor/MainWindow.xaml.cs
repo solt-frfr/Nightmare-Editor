@@ -22,7 +22,6 @@ namespace Nightmare_Editor
     /// </summary>
     public partial class MainWindow : Window
     {
-
         // "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d)|*.l2d|Model files(*.pmo)|*.pmo|All files (*.*)|*.*";
         private TextBox selectedTextBox;
         private TextBox selectedTextBox2;
@@ -31,6 +30,9 @@ namespace Nightmare_Editor
         private List<string> flaggedFiles = new List<string>();
         private List<string> flaggedFiles2 = new List<string>();
         private List<string> flaggedFiles3 = new List<string>();
+
+        private bool windowSwap = false;
+        private bool windowStore = false;
 
         public MainWindow()
         {
@@ -750,6 +752,40 @@ namespace Nightmare_Editor
         private void Help_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void WindowSwap(object sender, RoutedEventArgs e)
+        {
+            windowSwap = !windowSwap;
+            if (windowSwap)
+            {
+                Queue.Source = new BitmapImage(new Uri(@"pack://application:,,,/Images/unqueue.png"));
+                if (InfoWindow.Visibility == Visibility.Visible)
+                {
+                    windowStore = true;
+                }
+                else
+                {
+                    windowStore = false;
+                }
+                Blackout.Visibility = Visibility.Visible;
+                InfoWindow.Visibility = Visibility.Collapsed;
+                QueueWindow.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                Queue.Source = new BitmapImage(new Uri(@"pack://application:,,,/Images/queue.png"));
+                if (windowStore)
+                {
+                    InfoWindow.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    InfoWindow.Visibility = Visibility.Collapsed;
+                }
+                Blackout.Visibility = Visibility.Collapsed;
+                QueueWindow.Visibility = Visibility.Collapsed;
+            }
         }
     }
 }
