@@ -1,0 +1,108 @@
+﻿<Window x:Class="Nightmare_Editor.Help"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Nightmare_Editor"
+        mc:Ignorable="d"
+        xmlns:md="clr-namespace:MdXaml;assembly=MdXaml"
+        Title="Help" Height="450" Width="800" Background="Black">
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="MdStyle" TargetType="FlowDocument">
+                <Setter Property="FontFamily"    Value="Cascadia Code" />
+                <Setter Property="TextAlignment" Value="Left" />
+                <Setter Property="PagePadding"   Value="0"/>
+                <Setter Property="FontSize"      Value="10"/>
+                <Style.Resources>
+                    <Style TargetType="ScrollBar" x:Key="CustomScrollBarStyle">
+                        <Setter Property="Background" Value="#333"/>
+                        <Setter Property="Foreground" Value="#ccc"/>
+                        <Setter Property="Width" Value="10"/>
+                    </Style>
+                    <Style TargetType="Image">
+                        <Setter Property="Width" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=md:MarkdownScrollViewer}}" />
+                        <Setter Property="MaxWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=md:MarkdownScrollViewer}}" />
+                        <Setter Property="MinWidth" Value="500" />
+                        <Setter Property="Stretch" Value="UniformToFill" />
+                        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+                        <Setter Property="StretchDirection" Value="Both" />
+                    </Style>
+                    <Style TargetType="Paragraph">
+                        <Setter Property="FontFamily" Value="Segoe UI" />
+                        <Setter Property="Foreground" Value="Yellow" />
+                        <Setter Property="BorderBrush" Value="#F04080" />
+                        <Setter Property="Background" Value="#F04080" />
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="FontSize"      Value="15"/>
+                        <Setter Property="TextAlignment" Value="Left"/>
+                        <Style.Triggers>
+                            <Trigger Property="Tag" Value="Heading1">
+                                <Setter Property="FontFamily" Value="Segoe UI" />
+                                <Setter Property="FontSize"   Value="30" />
+                                <Setter Property="Foreground" Value="DarkMagenta" />
+                                <Setter Property="FontWeight" Value="Black" />
+                                <Setter Property="TextDecorations" Value="Underline" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Heading2">
+                                <Setter Property="FontFamily" Value="Segoe UI" />
+                                <Setter Property="FontSize"   Value="28" />
+                                <Setter Property="Foreground" Value="#00FF00" />
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Heading3">
+                                <Setter Property="FontFamily" Value="Segoe UI" />
+                                <Setter Property="FontSize"   Value="25" />
+                                <Setter Property="Foreground" Value="Black" />
+                                <Setter Property="FontWeight" Value="DemiBold" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Heading4">
+                                <Setter Property="FontFamily" Value="Segoe UI" />
+                                <Setter Property="FontSize"   Value="10" />
+                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="FontWeight" Value="DemiBold" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Code">
+                                <Setter Property="FontFamily" Value="Cascadia Code" />
+                                <Setter Property="FontSize"   Value="20" />
+                                <Setter Property="Foreground" Value="#F0F0F0" />
+                                <Setter Property="FontWeight" Value="DemiBold" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="CodeBlock">
+                                <Setter Property="FontFamily" Value="Cascadia Code" />
+                                <Setter Property="FontSize"   Value="20" />
+                                <Setter Property="Foreground" Value="#F0F0F0" />
+                                <Setter Property="FontWeight" Value="DemiBold" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="9*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Nightmare Editor Help" Foreground="White" FontWeight="Black" FontSize="30" Margin="5,0,0,0" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Grid.Row="1">
+            <StackPanel VerticalAlignment="Top">
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Int_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="Introduction"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Add_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="Add Files"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Usr_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="User-Added.rbin"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Tkt_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="Romhacking Suite"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Lnk_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="Texture Linking"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Pak_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="Packing Files"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Qrk_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="Quirks"/>
+                <TextBox Height="30" Foreground="White" Background="#F04080" BorderBrush="Gray" VerticalContentAlignment="Center" FontSize="20" FontWeight="Bold" MouseLeftButtonUp="Faq_Click" IsReadOnly="True" Focusable="False" Cursor="Hand" Text="FAQ / About"/>
+            </StackPanel>
+        </ScrollViewer>
+        <Grid Grid.Column="1" Grid.Row="1" Background="#F04080">
+            <md:MarkdownScrollViewer Name="MD" Grid.Column="1" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Markdown="Hello, World!" MarkdownStyle="{StaticResource ResourceKey=MdStyle}">
+            </md:MarkdownScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

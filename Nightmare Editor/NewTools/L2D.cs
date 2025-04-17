@@ -6,38 +6,35 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Nightmare_Editor
+namespace Nightmare_Editor.NewTools
 {
-    public static class NewTools
+    public static class L2D
     {
-        public static void CombineFiles(string firstFile, string secondFile, string outputFile, int offset)
-        {
-            File.Delete(outputFile);
-            using (var output = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
-            {
-                using (var fs1 = new FileStream(firstFile, FileMode.Open, FileAccess.Read))
-                {
-                    byte[] buffer = new byte[offset];
-                    int bytesRead = fs1.Read(buffer, 0, offset);
-                    output.Write(buffer, 0, bytesRead);
-                }
-
-                using (var fs2 = new FileStream(secondFile, FileMode.Open, FileAccess.Read))
-                {
-                    fs2.Seek(offset, SeekOrigin.Begin);
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
-                    while ((bytesRead = fs2.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        output.Write(buffer, 0, bytesRead);
-                    }
-                }
-            }
-        }
         static readonly byte[] CTRT = Encoding.ASCII.GetBytes("CTRT");
-
-        public static void ArcPack(string archive, List<string> embedded, string outputFile)
+        static long FindNextCTRT(FileStream fs, int start)
         {
+            fs.Position = start;
+            int b;
+            Queue<byte> buffer = new Queue<byte>();
+
+            while ((b = fs.ReadByte()) != -1)
+            {
+                buffer.Enqueue((byte)b);
+                if (buffer.Count > CTRT.Length)
+                    buffer.Dequeue();
+
+                if (buffer.SequenceEqual(CTRT))
+                    return (int)fs.Position - CTRT.Length;
+            }
+
+            return -1; // Not found
+        }
+        public static void Pack(string archive, List<string> embedded, string outputFile)
+        {
+            if (!Directory.Exists(Path.GetDirectoryName(archive)))
+            {
+                return;
+            }
             string tempdir = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\temp\";
             string temparchive = tempdir + Path.GetFileName(archive);
             List<string> tempembedded = new List<string>();
@@ -49,7 +46,6 @@ namespace Nightmare_Editor
                 tempembedded.Add(tempdir + Path.GetFileName(file));
             }
             File.Delete(outputFile);
-
             using (var output = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
             {
                 foreach (string file in tempembedded)
@@ -112,7 +108,7 @@ namespace Nightmare_Editor
                     }
                 }
             }
-            
+
             File.Delete(tempdir + Path.GetFileName(archive));
             foreach (string file in embedded)
             {
@@ -121,25 +117,9 @@ namespace Nightmare_Editor
             File.Copy(outputFile, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\" + Path.GetFileName(outputFile));
             Toolkit.ArcUnpack(Path.GetFileName(outputFile), Path.GetDirectoryName(outputFile));
         }
-
-
-        static long FindNextCTRT(FileStream fs, int start)
+        public static void Unpack()
         {
-            fs.Position = start;
-            int b;
-            Queue<byte> buffer = new Queue<byte>();
 
-            while ((b = fs.ReadByte()) != -1)
-            {
-                buffer.Enqueue((byte)b);
-                if (buffer.Count > CTRT.Length)
-                    buffer.Dequeue();
-
-                if (buffer.SequenceEqual(CTRT))
-                    return (int)fs.Position - CTRT.Length;
-            }
-
-            return -1; // Not found
         }
     }
 }

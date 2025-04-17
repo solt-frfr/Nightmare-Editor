@@ -13,6 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Help\Add.md" />
+    <None Remove="Help\Faq.md" />
+    <None Remove="Help\Images\Pak1.png" />
+    <None Remove="Help\Images\Qrk1.png" />
+    <None Remove="Help\Images\Tkt1.png" />
+    <None Remove="Help\Qrk.md" />
     <None Remove="Images\plus.png" />
     <None Remove="Images\unqueue.png" />
   </ItemGroup>
@@ -22,6 +28,47 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MdXaml" Version="1.27.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Help\Images\Pak1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Images\Lnk1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Lnk.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Pak.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Images\Qrk1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Images\Tkt1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Int.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Usr.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Tkt.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Add.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Faq.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Help\Qrk.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\help.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

@@ -23,7 +23,7 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Button Click="Help_Click" Background="Transparent" BorderBrush="Transparent">
-                <Image Source="/Images/help.png"/>
+                <Image Source="/Images/help.png" RenderOptions.BitmapScalingMode="HighQuality"/>
             </Button>
             <Button Grid.Column="2" Name="WS" Click="WindowSwap" Background="Transparent" BorderBrush="Transparent">
                 <Image Source="/Images/queue.png" Name="Queue" RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -35,7 +35,7 @@
                 <ColumnDefinition Width="5*"/>
             </Grid.ColumnDefinitions>
             <Button Click="FileOpen_Click" Background="Transparent" BorderBrush="Transparent">
-                <Image Source="/Images/plus.png"/>
+                <Image Source="/Images/plus.png" RenderOptions.BitmapScalingMode="HighQuality"/>
             </Button>
             <TextBox Grid.Column="1" Text="logger lol" Name="Log" TextWrapping="WrapWithOverflow" IsReadOnly="True"/>
         </Grid>
@@ -50,7 +50,7 @@
                                   Click="OpenFolder_Click" />
                         <MenuItem Header="Re-extract" Name="rex"
                                   Click="Again_Click" Visibility="Visible"/>
-                        <MenuItem Header="Pack All" Name="pckall1"
+                        <MenuItem Header="Pack Queued" Name="pckall1"
                                   Click="PackAll_Click" Visibility="Visible"/>
                     </ContextMenu>
                 </Grid.ContextMenu>
@@ -82,25 +82,38 @@
                 </StackPanel>
             </Grid>
         </ScrollViewer>
-        <Grid Name="QueueWindow" Grid.RowSpan="3" Grid.Column="2" Visibility="Collapsed"> 
-            <Image Source="Images/help.png"/>
+        <Grid Name="QueueWindow" Grid.RowSpan="3" Grid.Column="2" Visibility="Collapsed" Background="Black" Panel.ZIndex="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="8*"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="1" x:Name="Queued" VerticalAlignment="Top" Margin="3" Panel.ZIndex="2">
+                <!-- TextBox controls will be added here dynamically -->
+            </StackPanel>
+            <TextBox Name="QueueBox" Grid.Row="1" IsReadOnly="True" Focusable="False" BorderBrush="#4080f0" Background="LightGoldenrodYellow" BorderThickness="3" Panel.ZIndex="1"/>
+            <TextBlock FontStyle="Italic" Foreground="LightGoldenrodYellow" Margin="5" FontSize="10" VerticalAlignment="Bottom" HorizontalAlignment="Right"><Run Text="Files listed here will be packed in the order shown into the rbins"/><LineBreak/><Run Text="below it. .l2d, .pmo, and .ctt files will be packed themselves first."/></TextBlock>
+            <TextBlock Text="Packing Queue" Foreground="White" FontWeight="SemiBold" Margin="5" FontSize="25" VerticalAlignment="Center"/>
+            <Button Click="PackAll_Click" Foreground="White" FontWeight='Black' BorderBrush="#4080f0" FontStyle="Italic" Background="#4080f0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="2">
+                <TextBlock Text="Pack Queued" TextDecorations="Underline" FontSize="30"/>
+            </Button>
         </Grid>
         <Grid Name="InfoWindow" Grid.RowSpan="3" Grid.Column="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.5*"/>
-                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Grid Name="FileInfo" Grid.Column="2" Grid.Row="1" Margin="5">
+            <Grid Name="FileInfo" Grid.Column="1" Grid.Row="1" Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
@@ -111,6 +124,19 @@
                 <TextBox Text="Format:" Foreground="White" FontWeight='Black' BorderBrush="Gray" Background="#323b4a" VerticalContentAlignment="Center" Grid.Row="2" IsReadOnly="True" Focusable="False" FocusVisualStyle="{x:Null}"/>
                 <TextBox Name="FileSize" Text="0x0" Foreground="White" FontWeight='Black' BorderBrush="Gray" Background="#323b4a" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Grid.Row="1" Grid.Column="1" IsReadOnly="True" Focusable="False" FocusVisualStyle="{x:Null}"/>
                 <TextBox Name="FileFormat" Text="idk probably etc" Foreground="White" FontWeight='Black' BorderBrush="Gray" Background="#323b4a" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Grid.Row="2" Grid.Column="1" IsReadOnly="True" Focusable="False" FocusVisualStyle="{x:Null}"/>
+                <TextBox Name="FileLink" TextChanged="ScrollFileLink" Text="idk probably base texture" Foreground="LightPink" FontWeight='Thin' BorderBrush="Gray" Background="Black" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Grid.Row="3" Grid.ColumnSpan="2" IsReadOnly="True" Focusable="False" FocusVisualStyle="{x:Null}" MouseDoubleClick="Unlink_Click" TextWrapping="NoWrap"/>
+                <Grid Grid.ColumnSpan="2" Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button Click="Link_Click" Foreground="Blue" FontWeight='Black' BorderBrush="Gray" FontStyle="Italic" Background="White" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="3">
+                        <TextBlock Text="Link New Texture" TextDecorations="Underline" />
+                    </Button>
+                    <Button Click="Edit_Click" Foreground="Blue" FontWeight='Black' BorderBrush="Gray" FontStyle="Italic" Background="White" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="3" Grid.Column="1">
+                        <TextBlock Text="Open In Editor" TextDecorations="Underline" />
+                    </Button>
+                </Grid>
             </Grid>
             <Grid Grid.ColumnSpan="3" Background="White" Margin="5">
                 <Rectangle Name="TransRights" Stretch="Fill">

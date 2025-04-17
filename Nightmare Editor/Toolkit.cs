@@ -44,6 +44,8 @@ namespace Nightmare_Editor
             process.WaitForExit();
             Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\");
             Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\");
+            Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(filename)}");
+            Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(filename)}", true);
             Directory.Move($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(filename)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(filename)}");
             List<string> Paths = new List<string>();
             // Get all files in the folder
@@ -56,7 +58,7 @@ namespace Nightmare_Editor
                 if (!filetrim.Contains(".bmp") && !filetrim.Contains(".png") && (filetrim.Length - filetrim.Replace("\\", "").Length <= 1))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(file.Replace($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\")));
-                    File.Copy(file, file.Replace($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\"));
+                    File.Copy(file, file.Replace($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\"), true);
                 }
             }
             File.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{filename}");
@@ -65,12 +67,13 @@ namespace Nightmare_Editor
         public static void CTTPack(string filename, string path, string format)
         {
             string toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\ETC.exe";
-            if (format != "etc")
+            if (format != "ETC1" && format != "ETC1A4")
             {
                 toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\DDD Toolkit.exe";
             }
             string inputFile = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{filename}.{format}.png";
             string newFile = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{filename}";
+            File.Copy(newFile, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\og.ctt");
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
@@ -89,33 +92,37 @@ namespace Nightmare_Editor
             process.Start();
             process.WaitForExit();
 
-            NewTools.CombineFiles(newFile, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\og.ctt", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\new.ctt", (int)new FileInfo(newFile).Length);
+            NewTools.Misc.CombineFiles(newFile, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\og.ctt", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\new.ctt", (int)new FileInfo(newFile).Length);
             File.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\og.ctt");
             File.Delete(newFile);
             File.Delete(inputFile);
             File.Move($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\new.ctt", newFile);
 
             Toolkit.CTTUnpack(filename, path);
-            File.SetLastWriteTime(path + filename, DateTime.Now);
-            File.SetLastWriteTime(path + filename + "." + format + ".bmp", DateTime.Now);
-            File.SetLastWriteTime(path + filename + "." + format + ".png", DateTime.Now);
+            try
+            {
+                File.SetLastWriteTime(path + filename, DateTime.Now);
+                File.SetLastWriteTime(path + filename + "." + format + ".bmp", DateTime.Now);
+                File.SetLastWriteTime(path + filename + "." + format + ".png", DateTime.Now);
+            }
+            catch { }
         }
 
         public static void CTTUnpack(string filename, string path)
         {
             string toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\ETC.exe";
             string inputFile = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{filename}";
-            string format = "etc";
-            byte[] sig565 = new byte[] { 0x43, 0x54, 0x52, 0x54, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x80, 0x00, 0x40, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            using (var stream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+            byte[] buffer = new byte[0x80];
+            using (FileStream fs = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
             {
-                byte[] header = new byte[48];
-                stream.Read(header, 0, 48);
-                if (header == sig565)
-                {
-                    format = "565";
-                    toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\DDD Toolkit.exe";
-                }
+                fs.Read(buffer, 0, buffer.Length);
+            }
+            byte formatByte = buffer[0x1C]; // read byte from file
+            NewTools.CTT.Format formatenum = (NewTools.CTT.Format)formatByte;
+            string format = formatenum.ToString();
+            if (format != "ETC1" && format != "ETC1A4")
+            {
+                toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\DDD Toolkit.exe";
             }
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
@@ -135,59 +142,14 @@ namespace Nightmare_Editor
             process.Start();
             process.WaitForExit();
 
-            if (File.Exists(inputFile + "." + format + ".png"))
+            string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\", $"{filename}.*.png", SearchOption.AllDirectories);
+            string file2 = files2[0];
+
+            if (File.Exists(file2))
             {
                 File.Move(inputFile, path + Path.GetFileName(inputFile), true);
-                File.Move(inputFile + "." + format + ".png", path + Path.GetFileName(inputFile) + "." + format + ".png", true);
-                File.Move(inputFile + "." + format + ".bmp", path + Path.GetFileName(inputFile) + "." + format + ".bmp", true);
-            }
-            else
-            {
-                CTTUnpack(filename, path, true);
-            }
-        }
-
-        public static void CTTUnpack(string filename, string path, bool force565)
-        {
-            if (!force565)
-            {
-                CTTUnpack(filename, path);
-            }
-            else
-            {
-                string toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\DDD Toolkit.exe";
-                string inputFile = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{filename}";
-                string format = "565";
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/C \"\"{toolkitPath}\" \"{inputFile}\"\"",
-                    UseShellExecute = true,
-                    WorkingDirectory = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\"
-                };
-
-                Debug.WriteLine(startInfo.FileName);
-                Debug.WriteLine(startInfo.Arguments);
-                Process process = new Process
-                {
-                    StartInfo = startInfo
-                };
-
-                process.Start();
-                process.WaitForExit();
-
-                if (File.Exists(inputFile + "." + format + ".png"))
-                {
-                    File.Delete(inputFile);
-                    File.Move(inputFile + "." + format + ".png", path + Path.GetFileName(inputFile) + "." + format + ".png", true);
-                    File.Move(inputFile + "." + format + ".bmp", path + Path.GetFileName(inputFile) + "." + format + ".bmp", true);
-                }
-                else
-                {
-                    File.Delete(inputFile);
-                    File.Delete(path + filename);
-                    return;
-                }
+                File.Move(file2, path + Path.GetFileName(inputFile) + "." + format + ".png", true);
+                File.Move(file2.Replace(".png", ".bmp"), path + Path.GetFileName(file2.Replace(".png", ".bmp")), true);
             }
         }
 
