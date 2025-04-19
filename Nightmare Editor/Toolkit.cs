@@ -148,7 +148,7 @@ namespace Nightmare_Editor
             if (File.Exists(file2))
             {
                 File.Move(inputFile, path + Path.GetFileName(inputFile), true);
-                File.Move(file2, path + Path.GetFileName(inputFile) + "." + format + ".png", true);
+                File.Move(file2, path + Path.GetFileName(file2), true);
                 File.Move(file2.Replace(".png", ".bmp"), path + Path.GetFileName(file2.Replace(".png", ".bmp")), true);
             }
         }
