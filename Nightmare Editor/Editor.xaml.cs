@@ -1143,6 +1143,7 @@ namespace Nightmare_Editor
                             embedded.Add(path + Path.GetFileName(packed));
                         }
                     }
+                    MessageBox.Show("A window called ''Kingdom Hearts 3D Romhacking Suite'' will appear.\nType '14', and then press Enter.\nOnce ''Done!'' appears, press any key.");
                     NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", embedded);
                     Log.Text = $"Packed {file}!";
                 }

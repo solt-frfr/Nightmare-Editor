@@ -594,6 +594,10 @@ namespace Nightmare_Editor
                                 Directory.Delete(temppath, true);
                             }
                         }
+                        else
+                        {
+                            Directory.Move(extpath, newpath);
+                        }
                     }
                     catch { }
                 }
