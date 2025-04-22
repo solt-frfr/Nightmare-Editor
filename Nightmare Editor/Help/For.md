@@ -170,7 +170,7 @@
  Colors will be compressed. Please use texture linking to avoid repeated compression.
 
 #### 
-### ETC1A4 (13)
+### ETC1A4
  8 bpp
 
  Layout: ETC1 block (4bpp) + separate alpha block (4bpp).
@@ -179,5 +179,5 @@
 
 #### 
  Colors will be compressed. Please use texture linking to avoid repeated compression.
- 
+
  The upper 4 bits of the alpha channel will be encoded.

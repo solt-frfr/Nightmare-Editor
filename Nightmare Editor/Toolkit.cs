@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text.Json;
 
 namespace Nightmare_Editor
 {
@@ -20,6 +21,59 @@ namespace Nightmare_Editor
     /// </summary>
     public static class Toolkit
     {
+        public static void RbinPack(string filename, bool tooutput)
+        {
+            string toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\DDD Toolkit.exe";
+            string inputFile = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{filename}";
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/C \"\"{toolkitPath}\" \"{inputFile}\"\"",
+                UseShellExecute = true,
+                WorkingDirectory = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\"
+            };
+
+            Debug.WriteLine(startInfo.FileName);
+            Debug.WriteLine(startInfo.Arguments);
+            Process process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            process.Start();
+            process.WaitForExit();
+
+            if (!tooutput)
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "Game Archive File|*.rbin";
+                saveFileDialog.Title = "Save new .rbin file...";
+                saveFileDialog.FileName = $"{filename}";
+                saveFileDialog.ShowDialog();
+
+                if (saveFileDialog.FileName != "")
+                {
+                    File.Move(inputFile, saveFileDialog.FileName, true);
+                }
+                else
+                {
+                    File.Delete(inputFile);
+                }
+            }
+            else
+            {
+                string settingspath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\settings.json";
+                string jsonString = System.IO.File.ReadAllText(settingspath);
+                var jsonoptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                Settings settings = JsonSerializer.Deserialize<Settings>(jsonString, jsonoptions);
+                File.Move(inputFile, settings.DeployPath + $@"\{filename}", true);
+            }
+            Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(filename)}", true);
+        }
+
         public static void RbinExtract(string filename)
         {
             string toolkitPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\DDD Toolkit.exe";
@@ -39,7 +93,6 @@ namespace Nightmare_Editor
                 StartInfo = startInfo
             };
 
-            // Start the process
             process.Start();
             process.WaitForExit();
             Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\");
@@ -48,10 +101,8 @@ namespace Nightmare_Editor
             Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(filename)}", true);
             Directory.Move($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(filename)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(filename)}");
             List<string> Paths = new List<string>();
-            // Get all files in the folder
             string[] files = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", "*.*", SearchOption.AllDirectories);
 
-            // Iterate and print each file path
             foreach (string file in files)
             {
                 string filetrim = file.Replace($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", "");
@@ -92,11 +143,8 @@ namespace Nightmare_Editor
             process.Start();
             process.WaitForExit();
 
-            NewTools.Misc.CombineFiles(newFile, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\og.ctt", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\new.ctt", (int)new FileInfo(newFile).Length);
             File.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\og.ctt");
-            File.Delete(newFile);
             File.Delete(inputFile);
-            File.Move($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\new.ctt", newFile);
 
             Toolkit.CTTUnpack(filename, path);
             try

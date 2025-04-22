@@ -74,6 +74,12 @@ namespace Nightmare_Editor
             ScrollToTop();
         }
 
+        private void Mod_Click(object sender, MouseButtonEventArgs e)
+        {
+            MD.Markdown = QuickRead("Help/Mod.md");
+            ScrollToTop();
+        }
+
         private void Qrk_Click(object sender, MouseButtonEventArgs e)
         {
             MD.Markdown = QuickRead("Help/Qrk.md");

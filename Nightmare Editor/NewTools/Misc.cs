@@ -33,5 +33,24 @@ namespace Nightmare_Editor.NewTools
                 }
             }
         }
+
+        public static void CopyDirectory(string sourceDir, string destinationDir, bool overwrite = true)
+        {
+            if (!Directory.Exists(sourceDir))
+                throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
+            Directory.CreateDirectory(destinationDir);
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                string fileName = System.IO.Path.GetFileName(file);
+                string destFilePath = System.IO.Path.Combine(destinationDir, fileName);
+                System.IO.File.Copy(file, destFilePath, overwrite);
+            }
+            foreach (string subDir in Directory.GetDirectories(sourceDir))
+            {
+                string subDirName = System.IO.Path.GetFileName(subDir);
+                string destSubDirPath = System.IO.Path.Combine(destinationDir, subDirName);
+                CopyDirectory(subDir, destSubDirPath, overwrite);
+            }
+        }
     }
 }

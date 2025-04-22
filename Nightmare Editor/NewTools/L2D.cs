@@ -29,7 +29,7 @@ namespace Nightmare_Editor.NewTools
 
             return -1; // Not found
         }
-        public static void Pack(string archive, List<string> embedded, string outputFile)
+        public static void Pack(string archive, List<string> embedded)
         {
             if (!Directory.Exists(Path.GetDirectoryName(archive)))
             {
@@ -45,8 +45,8 @@ namespace Nightmare_Editor.NewTools
                 File.Copy(file, tempdir + Path.GetFileName(file), true);
                 tempembedded.Add(tempdir + Path.GetFileName(file));
             }
-            File.Delete(outputFile);
-            using (var output = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+            File.Delete(archive);
+            using (var output = new FileStream(archive, FileMode.Create, FileAccess.Write))
             {
                 foreach (string file in tempembedded)
                 {
@@ -114,8 +114,8 @@ namespace Nightmare_Editor.NewTools
             {
                 File.Delete(tempdir + Path.GetFileName(file));
             }
-            File.Copy(outputFile, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\" + Path.GetFileName(outputFile));
-            Toolkit.ArcUnpack(Path.GetFileName(outputFile), Path.GetDirectoryName(outputFile));
+            File.Copy(archive, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\" + Path.GetFileName(archive), true);
+            Toolkit.ArcUnpack(Path.GetFileName(archive), Path.GetDirectoryName(archive));
         }
         public static void Unpack()
         {

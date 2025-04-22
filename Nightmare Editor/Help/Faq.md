@@ -8,6 +8,19 @@
 ## The program just froze!
  Although it's unlikely for this to happen, since I patched one of the main reasons this would happen during the middle of development, my advice is just to wait if it does. If it crashes or doesn't unfreeze after a long period of time, contact me and/or leave a bug report on this program's GitHub page, at **https://github.com/solt-frfr/Nightmare-Editor/issues**.
 #### 
+## How do I edit (insert file type here)?
+ Because this is mostly focused on textures, files that are not textures or do not contain textures can't really be edited here. However, I know some other resources I can link to.
+#### 
+ **.moflex** files: Unfortunately, I don't have any programs to link to for these, but they *are* 3D movie files.
+#### 
+ **.bcsar** and **.bcstm** files: These are sound archive files and sound files respectively. Citric Composer can edit these. Have fun!
+
+ **https://github.com/Gota7/Citric-Composer**
+#### 
+ **.bcfnt**: As the name may suggest, these are font files. There's a couple editors I've seen online, but the one I personally use is NintyFont.
+
+ **https://github.com/hadashisora/NintyFont**
+#### 
 ## Why is this necessary?
 It isn't. This program is made for convenience, but I *highly* recommend someone uses it instead of not. There's quite a few reasons, actually, and they're all quite stupid.
 #### 
@@ -44,10 +57,17 @@ SOLT11 IF YOU WANT TO EDIT TEXTURES READ THIS
  ```
 #### 
 ## I still need help!
- Please use logic and try to figure this out best you can. The answers can't always be obvious. Consider rereading the entire help window, as it'll likely answer your question in one of the sections. If you *really* are still puzzled, go to the OpenKH discord server and ping me in #ddd-modding. I will not be linking the server on purpose, so that it is more tedious for you to ask others before figuring it out yourself. Besides, if you have this program, you're likely already in the server, and have talked to me before.
-####
+ Please use logic and try to figure this out best you can. The answers can't always be obvious. Consider rereading the entire help window, as it'll likely answer your question in one of the sections. If you *really* are still puzzled, go to the OpenKH discord server and ping me in **#ddd-modding**. I will not be linking the server on purpose, so that it is more tedious for you to ask others before figuring it out yourself. Besides, if you have this program, you're likely already in the server, and have talked to me before.
+#### 
 ## Are there any future plans you have?
  I'd like to learn how all these file formats work myself so that I can implement them myself manually, without reliance on tools, since it would then allow the larger community to understand how they work, since this is open source. I already had to reverse engineer most of .ctt textures because packing for RGB565 textures failed with the toolkit. Still don't really know why.
+#### 
+# Reimplemented Functions
+ As I move away from using the Deep Drive Translation Team's tools, I will talk about functions I've reimplemented here.
+#### 
+## CTT Encoding and Decoding
+ Packing CTT files in the toolkit just *didn't work*. It basically just returned a blank image. So I spent almost the entire next day implementing decoding/encoding ctt textures from scratch. Within that day, I was able to completely implement RGBA8888, RGB888, and RGB565. I also adjusted many minor things, like switching to the correct format identifiers, and implementing a half-baked texture linking that didn't store your progress, unlike the final version.
+#### 
 # About
  This project was solo developed by me, Solt11, out of hatred for the modding process and the wish to make it more convenient. It is a program that acts as a helper for a different set of tools made by the Deep Dive Translations team. My hope is that this program helps someone in their modding endevours.
 #### 

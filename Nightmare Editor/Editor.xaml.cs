@@ -15,19 +15,21 @@ using System.Diagnostics;
 using Nightmare_Editor.NewTools;
 using Newtonsoft;
 using System.Text.Json;
-using Nightmare_Editor.DDD_Toolkit;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using SevenZip;
+using Pulsar;
+
 
 namespace Nightmare_Editor
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for Editor.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class Editor : Window
     {
-        // "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d;*.fep;)|*.l2d;*.fep;|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
+        // "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d)|*.l2d|Effect Files(*.fep)|*.fep|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
         private TextBox selectedTextBox;
         private TextBox selectedTextBox2;
         private TextBox selectedTextBox3;
@@ -47,7 +49,9 @@ namespace Nightmare_Editor
 
         private readonly string linkPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\textures.json";
 
-        public MainWindow()
+        private List<TextBox> unfiltered = new List<TextBox>();
+
+        public Editor()
         {
             InitializeComponent();
             InfoWindow.Visibility = Visibility.Collapsed;
@@ -97,11 +101,32 @@ namespace Nightmare_Editor
             }
         }
 
+        public static void BetterDirCopy(string sourceDir, string destDir, bool delete)
+        {
+            Directory.CreateDirectory(destDir);
+
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                string destFile = Path.Combine(destDir, Path.GetFileName(file));
+                File.Copy(file, destFile, overwrite: true);
+            }
+
+            foreach (var dir in Directory.GetDirectories(sourceDir))
+            {
+                string destSubDir = Path.Combine(destDir, Path.GetFileName(dir));
+                BetterDirCopy(dir, destSubDir, false);
+            }
+            if (delete)
+            {
+                Directory.Delete(sourceDir, true);
+            }
+        }
+
         private void FileOpen_Click(object sender, RoutedEventArgs e)
         {
             Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current");
             OpenFileDialog file = new OpenFileDialog();
-            file.Filter = "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d;*.fep;)|*.l2d;*.fep;|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
+            file.Filter = "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d)|*.l2d|Effect Files(*.fep)|*.fep|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
             file.Title = "Select a file to open...";
             file.ShowDialog();
             var filedata = file.OpenFile;
@@ -128,8 +153,7 @@ namespace Nightmare_Editor
                 {
                     string[] files = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\User-Added\", "*.*", SearchOption.AllDirectories);
                     File.Copy(file.FileName, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\User-Added\{files.Length}-{Path.GetFileName(file.FileName)}", true);
-                    File.Copy(file.FileName, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{files.Length}-{Path.GetFileName(file.FileName)}", true);
-                    Toolkit.CTTUnpack($"{files.Length}-{Path.GetFileName(file.FileName)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\User-Added\");
+                    CTT.Decode($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\User-Added\{files.Length}-{Path.GetFileName(file.FileName)}");
                 }
                 else if (Path.GetExtension(file.FileName) == ".pmo" || Path.GetExtension(file.FileName) == ".l2d" || Path.GetExtension(file.FileName) == ".fep" || Path.GetExtension(file.FileName) == ".pmp")
                 {
@@ -246,9 +270,6 @@ namespace Nightmare_Editor
                     rex.Visibility = Visibility.Collapsed;
                     remove.Visibility = Visibility.Collapsed;
                     replace.Visibility = Visibility.Collapsed;
-                    pckall1.Visibility = Visibility.Collapsed;
-                    pckall2.Visibility = Visibility.Collapsed;
-                    pckall3.Visibility = Visibility.Collapsed;
                     flag2.Visibility = Visibility.Collapsed;
                     flag3.Visibility = Visibility.Collapsed;
                     remove2.Visibility = Visibility.Visible;
@@ -258,9 +279,6 @@ namespace Nightmare_Editor
                     rex.Visibility = Visibility.Visible;
                     remove.Visibility = Visibility.Visible;
                     replace.Visibility = Visibility.Visible;
-                    pckall1.Visibility = Visibility.Visible;
-                    pckall2.Visibility = Visibility.Visible;
-                    pckall3.Visibility = Visibility.Visible;
                     flag2.Visibility = Visibility.Visible;
                     flag3.Visibility = Visibility.Visible;
                     remove2.Visibility = Visibility.Collapsed;
@@ -275,6 +293,12 @@ namespace Nightmare_Editor
 
         private void TextBox_Click(object sender, EventArgs e)
         {
+            try
+            {
+                Files2_Scroll.ScrollToTop();
+            }
+            catch { }
+            Sort.SelectedIndex = 0;
             InfoWindow.Visibility = Visibility.Collapsed;
             foreach (var child in Files.Children)
             {
@@ -307,10 +331,12 @@ namespace Nightmare_Editor
                 .ToList();
 
             Files2.Children.Clear();
+            unfiltered.Clear();
 
             foreach (var textBox in sorted)
             {
                 Files2.Children.Add(textBox);
+                unfiltered.Add(textBox);
             }
         }
         private void TextBox2_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -330,6 +356,11 @@ namespace Nightmare_Editor
 
         private void TextBox2_Click(object sender, EventArgs e)
         {
+            try
+            {
+                Files3_Scroll.ScrollToTop();
+            }
+            catch { }
             InfoWindow.Visibility = Visibility.Collapsed;
             foreach (var child in Files2.Children)
             {
@@ -604,14 +635,14 @@ namespace Nightmare_Editor
                         File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{textBox.Text}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{textBox.Text}", true);
                         Toolkit.RbinExtract(textBox.Text);
                     }
+                    break;
                 }
-                break;
             }
         }
 
         private void OpenFolder_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\"))
+            if (File.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{selectedTextBox.Text}"))
             {
                 ProcessStartInfo StartInformation = new ProcessStartInfo();
                 StartInformation.FileName = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\";
@@ -622,10 +653,12 @@ namespace Nightmare_Editor
 
         private void OpenFolder2_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\"))
+            if (File.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{selectedTextBox2.Text}"))
             {
+                string file = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{selectedTextBox2.Text}";
                 ProcessStartInfo StartInformation = new ProcessStartInfo();
-                StartInformation.FileName = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\";
+                StartInformation.FileName = "explorer.exe";
+                StartInformation.Arguments = $"/select,\"{file}\""; 
                 StartInformation.UseShellExecute = true;
                 Process process = Process.Start(StartInformation);
             }
@@ -633,10 +666,12 @@ namespace Nightmare_Editor
 
         private void OpenFolder3_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\"))
+            if (File.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{selectedTextBox3.Text}"))
             {
+                string file = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{selectedTextBox3.Text}";
                 ProcessStartInfo StartInformation = new ProcessStartInfo();
-                StartInformation.FileName = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\";
+                StartInformation.FileName = "explorer.exe";
+                StartInformation.Arguments = $"/select,\"{file}\"";
                 StartInformation.UseShellExecute = true;
                 Process process = Process.Start(StartInformation);
             }
@@ -671,7 +706,7 @@ namespace Nightmare_Editor
                     }
                     else if (textBox.Text.EndsWith(".fep"))
                     {
-                        file.Filter = "Texture Archive files(*.fep)|*.fep";
+                        file.Filter = "Effect files(*.fep)|*.fep";
                     }
                     else if (textBox.Text.EndsWith(".pmo"))
                     {
@@ -766,11 +801,12 @@ namespace Nightmare_Editor
                             string path = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(textBox.Text)}\";
                             embedded.Add(path + textBox2.Text);
                         }
-                        NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{textBox.Text}", embedded, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{textBox.Text}");
+                        NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{textBox.Text}", embedded);
+                        Log.Text = $"Packed {textBox.Text}!";
                     }
                     else
                     {
-                        Log.Text = $"{textBox} is not an archive file, and cannot be packed.";
+                        Log.Text = $"{textBox} is not an archive nor texture file, and cannot be packed.";
                     }    
                     break;
                 }
@@ -794,7 +830,7 @@ namespace Nightmare_Editor
                     }
                     else if (textBox.Text.EndsWith(".fep"))
                     {
-                        file.Filter = "Texture Archive files(*.fep)|*.fep";
+                        file.Filter = "Effect files(*.fep)|*.fep";
                     }
                     else if (textBox.Text.EndsWith(".pmo"))
                     {
@@ -889,7 +925,8 @@ namespace Nightmare_Editor
                             string path = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{Path.GetFileNameWithoutExtension(textBox.Text)}\";
                             embedded.Add(path + textBox2.Text);
                         }
-                        NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{textBox.Text}", embedded, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{textBox.Text}");
+                        NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{textBox.Text}", embedded);
+                        Log.Text = $"Packed {textBox.Text}!";
                     }
                     break;
                 }
@@ -967,7 +1004,156 @@ namespace Nightmare_Editor
         }
         private void PackAll_Click(object sender, RoutedEventArgs e)
         {
+            foreach(string file in allfiles)
+            {
+                if (file.EndsWith(".ctt"))
+                {
+                    Log.Text = $"Packing {file}...";
+                    string file2 = "";
+                    bool found = false;
+                    foreach (var arr in textureLinks)
+                    {
+                        string texture = arr[0];
+                        string[] temp1 = texture.Split('\\');
+                        texture = "";
+                        for (int i = 0; i < (temp1.Count()); i++)
+                        {
+                            if (i < (temp1.Count() - 1))
+                            {
+                                texture += $@"{Path.GetFileNameWithoutExtension(temp1[i])}\";
+                            }
+                            else
+                            {
+                                texture += temp1[i];
+                            }
+                        }
+                        if (arr.Length >= 2 && texture == file)
+                        {
+                            file2 = arr[1];
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\", $"{Path.GetFileName(file)}.*.png", SearchOption.AllDirectories);
+                        file2 = files2[0];
+                    }
+                    NewTools.CTT.Encode($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", file2);
+                    Log.Text = $"Packed {file}!";
+                }
+                else if ((file.EndsWith(".l2d") || file.EndsWith(".fep") || file.EndsWith(".pmo") || file.EndsWith(".pmp")) && Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\"))
+                {
+                    List<string> embedded = new List<string>();
+                    string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\", $"*.ctt", SearchOption.AllDirectories);
+                    foreach (string packed in files2)
+                    {
+                        string packed2 = packed.Replace($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", "");
+                        if (Path.GetFileNameWithoutExtension(packed2.Split('\\')[1]) == Path.GetFileNameWithoutExtension(file.Split('\\')[1]))
+                        {
+                            string path = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\";
+                            embedded.Add(path + Path.GetFileName(packed));
+                        }
+                    }
+                    MessageBox.Show("A window called ''Kingdom Hearts 3D Romhacking Suite'' will appear.\nType '14', and then press Enter.\nOnce ''Done!'' appears, press any key.");
+                    NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", embedded);
+                    Log.Text = $"Packed {file}!";
+                }
+                else if (file.EndsWith(".rbin"))
+                {
+                    File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{file}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{file}", true);
+                    try
+                    {
+                        Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", true);
+                    }
+                    catch { }
+                    BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\{Path.GetFileNameWithoutExtension(file)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", false);
+                    BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\{Path.GetFileNameWithoutExtension(file)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", true);
+                    MessageBox.Show("A window called ''Kingdom Hearts 3D Romhacking Suite'' will appear.\nType '2', and then press Enter.\nOnce ''Done!'' appears, press any key.");
+                    Toolkit.RbinPack(file, false);
+                    Log.Text = $"Packed {file}!";
+                }
+                if (file.Length - file.Replace("\\", "").Length == 1)
+                {
+                    Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\{Path.GetDirectoryName(file)}");
+                    File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\{file}", true);
+                }
+            }
+        }
 
+        private void ExpMod_Click(object sender, RoutedEventArgs e)
+        {
+            MakePack finish = new MakePack(new Meta());
+            finish.ShowDialog();
+
+            var jsonoptions = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+            string jsonString = System.IO.File.ReadAllText($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\temp.json");
+            Meta mod = JsonSerializer.Deserialize<Meta>(jsonString, jsonoptions);
+            foreach (string file in allfiles)
+            {
+                if (file.EndsWith(".ctt"))
+                {
+                    Log.Text = $"Packing {file}...";
+                    string file2 = "";
+                    bool found = false;
+                    foreach (var arr in textureLinks)
+                    {
+                        string texture = arr[0];
+                        string[] temp1 = texture.Split('\\');
+                        texture = "";
+                        for (int i = 0; i < (temp1.Count()); i++)
+                        {
+                            if (i < (temp1.Count() - 1))
+                            {
+                                texture += $@"{Path.GetFileNameWithoutExtension(temp1[i])}\";
+                            }
+                            else
+                            {
+                                texture += temp1[i];
+                            }
+                        }
+                        if (arr.Length >= 2 && texture == file)
+                        {
+                            file2 = arr[1];
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\", $"{Path.GetFileName(file)}.*.png", SearchOption.AllDirectories);
+                        file2 = files2[0];
+                    }
+                    NewTools.CTT.Encode($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", file2);
+                    Log.Text = $"Packed {file}!";
+                }
+                else if ((file.EndsWith(".l2d") || file.EndsWith(".fep") || file.EndsWith(".pmo") || file.EndsWith(".pmp")) && Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\"))
+                {
+                    List<string> embedded = new List<string>();
+                    string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\", $"*.ctt", SearchOption.AllDirectories);
+                    foreach (string packed in files2)
+                    {
+                        string packed2 = packed.Replace($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\", "");
+                        if (Path.GetFileNameWithoutExtension(packed2.Split('\\')[1]) == Path.GetFileNameWithoutExtension(file.Split('\\')[1]))
+                        {
+                            string path = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetDirectoryName(file)}\{Path.GetFileNameWithoutExtension(file)}\";
+                            embedded.Add(path + Path.GetFileName(packed));
+                        }
+                    }
+                    NewTools.L2D.Pack($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", embedded);
+                    Log.Text = $"Packed {file}!";
+                }
+                if (file.Length - file.Replace("\\", "").Length == 1)
+                {
+                    Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{mod.ID}\{Path.GetDirectoryName(file)}");
+                    File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{file}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{mod.ID}\{file}", true);
+                }
+            }
+            File.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\temp.json");
+            ZipMod(mod);
         }
 
         private void Help_Click(object sender, RoutedEventArgs e)
@@ -978,7 +1164,6 @@ namespace Nightmare_Editor
 
         private void WindowSwap(object sender, RoutedEventArgs e)
         {
-            // NewTools.CTT.Decode(@"C:\Users\solom\Desktop\Documents\KH3D\example files\4_rgba4444.ctt");
             windowSwap = !windowSwap;
             allfiles.Clear();
             allfiles.AddRange(flaggedFiles);
@@ -1077,20 +1262,20 @@ namespace Nightmare_Editor
                 {
                     Texture.Source = bitmap;
                 }
-            }
-            bool found = false;
-            foreach (var arr in textureLinks)
-            {
-                if (arr.Length >= 2 && arr[0] == FileName.Text)
+                bool found = false;
+                foreach (var arr in textureLinks)
                 {
-                    arr[1] = file.FileName;
-                    found = true;
-                    break;
+                    if (arr.Length >= 2 && arr[0] == FileName.Text)
+                    {
+                        arr[1] = file.FileName;
+                        found = true;
+                        break;
+                    }
                 }
-            }
-            if (!found)
-            {
-                textureLinks.Add([FileName.Text, file.FileName]);
+                if (!found)
+                {
+                    textureLinks.Add([FileName.Text, file.FileName]);
+                }
             }
             QuickJson(true);
         }
@@ -1111,6 +1296,14 @@ namespace Nightmare_Editor
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
+                foreach (var arr in textureLinks)
+                {
+                    if (arr.Length >= 2 && arr[0] == FileName.Text)
+                    {
+                        textureLinks.Remove(arr);
+                        break;
+                    }
+                }
                 int from = FileName.Text.Split('\\').Length;
                 if (from == 2)
                 {
@@ -1132,14 +1325,6 @@ namespace Nightmare_Editor
                     bitmap.EndInit();
                 }
                 Texture.Source = bitmap;
-            }
-            foreach (var arr in textureLinks)
-            {
-                if (arr.Length >= 2 && arr[0] == FileName.Text)
-                {
-                    textureLinks.Remove(arr);
-                    break;
-                }
             }
             QuickJson(true);
         }
@@ -1189,6 +1374,105 @@ namespace Nightmare_Editor
         private void FileLink_Click(object sender, MouseButtonEventArgs e)
         {
             ScrollFileLink();
+        }
+
+        private void Files2_Filter(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Files2.Children.Clear();
+                string filter = "";
+                if (Sort.SelectedIndex == 0)
+                {
+                    foreach (var textbox in unfiltered)
+                    {
+                        Files2.Children.Add(textbox);
+                    }
+                }
+                else
+                {
+                    if (Sort.SelectedIndex == 1)
+                    {
+                        filter = ".ctt";
+                    }
+                    else if (Sort.SelectedIndex == 2)
+                    {
+                        filter = ".l2d";
+                    }
+                    else if (Sort.SelectedIndex == 3)
+                    {
+                        filter = ".fep";
+                    }
+                    else if (Sort.SelectedIndex == 4)
+                    {
+                        filter = ".pmo";
+                    }
+                    else if (Sort.SelectedIndex == 5)
+                    {
+                        filter = ".pmp";
+                    }
+                    foreach (var textbox in unfiltered)
+                    {
+                        if (textbox.Text.Contains(filter))
+                        {
+                            Files2.Children.Add(textbox);
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void Reverse_Rebirth(object sender, RoutedEventArgs e)
+        {
+            Manager mw = new Manager();
+            mw.Show();
+            Close();
+        }
+
+        private void ZipMod(Meta meta)
+        {
+            if (Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{meta.ID}"))
+            {
+                try
+                {
+                    Misc.CopyDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{meta.ID}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Temp\{meta.ID}\{meta.Name}", true);
+
+                    var jsonoptions = new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    };
+                    string jsonString = JsonSerializer.Serialize(meta, jsonoptions);
+                    string filepath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Temp\{meta.ID}\{meta.Name}" + $@"\meta.json";
+                    System.IO.File.WriteAllText(filepath, jsonString);
+                    var libpath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Environment.Is64BitProcess ? "x64" : "x86", "7z.dll");
+                    SevenZipCompressor.SetLibraryPath(libpath);
+                    SevenZipCompressor zcompressor = new SevenZipCompressor
+                    {
+                        ArchiveFormat = OutArchiveFormat.SevenZip,
+                        CompressionLevel = CompressionLevel.High
+                    };
+                    Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                    {
+                        Title = "Save Mod Archive",
+                        Filter = "Mod Archive (*.7z)|*.7z",
+                        DefaultExt = ".7z",
+                        FileName = $@"{meta.ID}.7z"
+                    };
+
+                    if (saveFileDialog.ShowDialog() == true)
+                    {
+                        string filePath = saveFileDialog.FileName;
+                        zcompressor.CompressDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Temp\{meta.ID}", filePath);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Save file operation canceled.");
+                    }
+                    Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Temp\{meta.ID}\{meta.Name}", true);
+                }
+                catch { }
+            }
         }
     }
 }

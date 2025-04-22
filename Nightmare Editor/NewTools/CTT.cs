@@ -95,9 +95,10 @@ namespace Nightmare_Editor.NewTools
             Format formatenum = (Format)formatByte;
             int startIndex = file.Length + 1;
             string format = formatenum.ToString();
-            if ((int)formatenum <= 4)
+            if ((int)formatenum >= 12)
             {
                 File.Copy(texture, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileName(file)}.{format}.png", true);
+                File.Copy(file, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileName(file)}", true);
                 Toolkit.CTTPack(Path.GetFileName(file), $@"{Path.GetDirectoryName(file)}\", format);
                 return;
             }
@@ -135,6 +136,48 @@ namespace Nightmare_Editor.NewTools
                 var image = Assemble(newData, width, height, true);
                 return image;
             }
+            else if (format == 5)
+            {
+                byte[] newData = LA8unpack(rawData);
+                var image = Assemble(newData, width, height, true);
+                return image;
+            }
+            else if (format == 6)
+            {
+                byte[] newData = HILO8unpack(rawData);
+                var image = Assemble(newData, width, height, false);
+                return image;
+            }
+            else if (format == 7)
+            {
+                byte[] newData = L8unpack(rawData);
+                var image = Assemble(newData, width, height, false);
+                return image;
+            }
+            else if (format == 8)
+            {
+                byte[] newData = A8unpack(rawData);
+                var image = Assemble(newData, width, height, true);
+                return image;
+            }
+            else if (format == 9)
+            {
+                byte[] newData = LA4unpack(rawData);
+                var image = Assemble(newData, width, height, true);
+                return image;
+            }
+            else if (format == 10)
+            {
+                byte[] newData = L4unpack(rawData);
+                var image = Assemble(newData, width, height, false);
+                return image;
+            }
+            else if (format == 11)
+            {
+                byte[] newData = A4unpack(rawData);
+                var image = Assemble(newData, width, height, true);
+                return image;
+            }
             else
             {
                 return null;
@@ -160,6 +203,34 @@ namespace Nightmare_Editor.NewTools
             else if (format == 4)
             {
                 newData = RGBA4444pack(image);
+            }
+            else if (format == 5)
+            {
+                newData = LA8pack(image);
+            }
+            else if (format == 6)
+            {
+                newData = HILO8pack(image);
+            }
+            else if (format == 7)
+            {
+                newData = L8pack(image);
+            }
+            else if (format == 8)
+            {
+                newData = A8pack(image);
+            }
+            else if (format == 9)
+            {
+                newData = LA4pack(image);
+            }
+            else if (format == 10)
+            {
+                newData = L4pack(image);
+            }
+            else if (format == 11)
+            {
+                newData = A4pack(image);
             }
             else
             {
@@ -267,20 +338,31 @@ namespace Nightmare_Editor.NewTools
 
         public static byte[] CTTHeader(int width, int height, int format)
         {
-            int bpp = 4;
+            int total = 0;
             if (format == 0)
             {
-                bpp = 4;
+                total = height * width * 4;
             }
             else if (format == 1)
             {
-                bpp = 3;
+                total = height * width * 3;
             }
-            else if (format == 2 || format == 3 || format == 4)
+            else if (format >= 2 && format <= 6)
             {
-                bpp = 2;
+                total = height * width * 2;
             }
-            int total = height * width;
+            else if (format >= 7 && format <= 9)
+            {
+                total = height * width * 1;
+            }
+            else if (format >= 10 && format <= 11)
+            {
+                total = height * width / 2;
+            }
+            else if (format >= 12 && format <= 13)
+            {
+                total = (height / 4) * (width / 4) * 8;
+            }
             byte[] header = new byte[0x80];
 
             header[0x00] = 0x43;
@@ -400,7 +482,7 @@ namespace Nightmare_Editor.NewTools
             byte[] newData = new byte[ogData.Length * 2];
 
             int j = 0;
-            for (int i = 0; i < ogData.Length; i++)
+            for (int i = 0; i < ogData.Length; i += 2)
             {
                 ushort pixel = (ushort)(ogData[i] | (ogData[i + 1] << 8));
 
@@ -417,7 +499,7 @@ namespace Nightmare_Editor.NewTools
                 {
                     a8 = 0xFF;
                 }
-                i++;
+
                 newData[j++] = (byte)a8;
                 newData[j++] = (byte)b8;
                 newData[j++] = (byte)g8;
@@ -436,7 +518,7 @@ namespace Nightmare_Editor.NewTools
             byte[] newData = new byte[ogData.Length * 3 / 2];
 
             int j = 0;
-            for (int i = 0; i < ogData.Length; i++)
+            for (int i = 0; i < ogData.Length; i += 2)
             {
                 ushort pixel = (ushort)(ogData[i] | (ogData[i + 1] << 8));
 
@@ -447,7 +529,7 @@ namespace Nightmare_Editor.NewTools
                 byte r8 = (byte)((r5 << 3) | (r5 >> 2));
                 byte g8 = (byte)((g6 << 2) | (g6 >> 4));
                 byte b8 = (byte)((b5 << 3) | (b5 >> 2));
-                i++;
+
                 newData[j++] = (byte)b8;
                 newData[j++] = (byte)g8;
                 newData[j++] = (byte)r8;
@@ -465,7 +547,7 @@ namespace Nightmare_Editor.NewTools
             byte[] newData = new byte[ogData.Length * 2];
 
             int j = 0;
-            for (int i = 0; i < ogData.Length; i++)
+            for (int i = 0; i < ogData.Length; i += 2)
             {
                 ushort pixel = (ushort)(ogData[i] | (ogData[i + 1] << 8));
 
@@ -478,11 +560,171 @@ namespace Nightmare_Editor.NewTools
                 byte g8 = (byte)(g4 << 4 | g4);
                 byte b8 = (byte)(b4 << 4 | b4);
                 byte a8 = (byte)(a4 << 4 | a4);
-                i++;
+
                 newData[j++] = (byte)a8;
                 newData[j++] = (byte)b8;
                 newData[j++] = (byte)g8;
                 newData[j++] = (byte)r8;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts LA8 bytes into RGBA8888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw LA8 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGBA8888 data.</returns>
+        public static byte[] LA8unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 2];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i += 2)
+            {
+                newData[j++] = ogData[i + 1];
+                newData[j++] = ogData[i];
+                newData[j++] = ogData[i];
+                newData[j++] = ogData[i];
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts HILO8 bytes into RGB888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw HILO8 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGB888 data.
+        /// The red channel represents the Hi channel.
+        /// The blue channel represents the Lo channel.</returns>
+        public static byte[] HILO8unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 3 / 2];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i += 2)
+            {
+                newData[j++] = ogData[i + 1];
+                j++;
+                newData[j++] = ogData[i];
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts L8 bytes into RGB888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw L8 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGB888 data.</returns>
+        public static byte[] L8unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 3];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i++)
+            {
+                newData[j++] = ogData[i];
+                newData[j++] = ogData[i];
+                newData[j++] = ogData[i];
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts A8 bytes into RGBA8888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw A8 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGBA8888 data.</returns>
+        public static byte[] A8unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 4];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i++)
+            {
+                newData[j++] = ogData[i];
+                newData[j++] = 0x00;
+                newData[j++] = 0x00;
+                newData[j++] = 0x00;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts LA4 bytes into RGBA8888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw LA4 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGBA8888 data.</returns>
+        public static byte[] LA4unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 4];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i++)
+            {
+                int a4 = (ogData[i] >> 4) & 0xF;
+                int gray4 = ogData[i] & 0xF;
+
+                byte a8 = (byte)(a4 << 4 | a4);
+                byte gray8 = (byte)(gray4 << 4 | gray4);
+
+                newData[j++] = a8;
+                newData[j++] = gray8;
+                newData[j++] = gray8;
+                newData[j++] = gray8;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts L4 bytes into RGB888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw L4 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGB888 data.</returns>
+        public static byte[] L4unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 6];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i++)
+            {
+                int gray4_1 = (ogData[i] >> 4) & 0xF;
+                int gray4_2 = ogData[i] & 0xF;
+
+                byte gray8_1 = (byte)(gray4_1 << 4 | gray4_1);
+                byte gray8_2 = (byte)(gray4_2 << 4 | gray4_2);
+
+                newData[j++] = gray8_1;
+                newData[j++] = gray8_1;
+                newData[j++] = gray8_1;
+                newData[j++] = gray8_2;
+                newData[j++] = gray8_2;
+                newData[j++] = gray8_2;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts A4 bytes into RGBA8888 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw A4 byte array.</param>
+        /// <returns>Returns a byte array containing raw RGBA8888 data.</returns>
+        public static byte[] A4unpack(byte[] ogData)
+        {
+            byte[] newData = new byte[ogData.Length * 8];
+
+            int j = 0;
+            for (int i = 0; i < ogData.Length; i++)
+            {
+                int a4_1 = (ogData[i] >> 4) & 0xF;
+                int a4_2 = ogData[i] & 0xF;
+
+                byte a8_1 = (byte)(a4_1 << 4 | a4_1);
+                byte a8_2 = (byte)(a4_2 << 4 | a4_2);
+
+                newData[j++] = a8_1;
+                j += 3;
+                newData[j++] = a8_2;
+                j += 3;
             }
             return newData;
         }
@@ -531,7 +773,7 @@ namespace Nightmare_Editor.NewTools
             }
 
             int j = 0x80;
-            for (int i = 0x80; i < ogData.Length; i++)
+            for (int i = 0x80; i < ogData.Length; i += 4)
             {
                 int a1 = ogData[i + 0] >> 7;
                 int b5 = ogData[i + 1] >> 3;
@@ -539,10 +781,6 @@ namespace Nightmare_Editor.NewTools
                 int r5 = ogData[i + 3] >> 3;
 
                 ushort bytes = (ushort)((r5 << 11) | (g5 << 6) | (b5 << 1) | a1);
-
-                i++;
-                i++;
-                i++;
 
                 newData[j++] = (byte)(bytes & 0xFF);
                 newData[j++] = (byte)((bytes >> 8) & 0xFF);
@@ -568,17 +806,13 @@ namespace Nightmare_Editor.NewTools
             }
 
             int j = 0x80;
-            for (int i = 0x80; i < ogData.Length; i++)
+            for (int i = 0x80; i < ogData.Length; i += 4)
             {
                 int b5 = ogData[i + 1] >> 3;
                 int g6 = ogData[i + 2] >> 2;
                 int r5 = ogData[i + 3] >> 3;
 
                 ushort bytes = (ushort)((r5 << 11) | (g6 << 5) | b5);
-
-                i++;
-                i++;
-                i++;
 
                 newData[j++] = (byte)(bytes & 0xFF);
                 newData[j++] = (byte)((bytes >> 8) & 0xFF);
@@ -604,7 +838,7 @@ namespace Nightmare_Editor.NewTools
             }
 
             int j = 0x80;
-            for (int i = 0x80; i < ogData.Length; i++)
+            for (int i = 0x80; i < ogData.Length; i += 4)
             {
                 int a4 = ogData[i + 0] >> 4;
                 int b4 = ogData[i + 1] >> 4;
@@ -613,12 +847,221 @@ namespace Nightmare_Editor.NewTools
 
                 ushort bytes = (ushort)((r4 << 12) | (g4 << 8) | (b4 << 4) | a4);
 
-                i++;
-                i++;
-                i++;
+                newData[j++] = (byte)(bytes & 0xFF);
+                newData[j++] = (byte)((bytes >> 8) & 0xFF);
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into LA8 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw LA8 data, with a CTT Header.</returns>
+        public static byte[] LA8pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.LA8);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 2) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 4)
+            {
+                int a8 = ogData[i];
+                int r = ogData[i + 3];
+                int g = ogData[i + 2];
+                int b = ogData[i + 1];
+                byte gray8 = (byte)(0.299 * r + 0.587 * g + 0.114 * b);
+                ushort bytes = (ushort)((gray8 << 8) | a8);
 
                 newData[j++] = (byte)(bytes & 0xFF);
                 newData[j++] = (byte)((bytes >> 8) & 0xFF);
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into HILO8 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw HILO8 data, with a CTT Header.</returns>
+        public static byte[] HILO8pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.HILO8);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 3 * 2) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 4)
+            {
+                int lo = ogData[i + 1];
+                int hi = ogData[i + 3];
+                ushort bytes = (ushort)((hi << 8) | lo);
+
+                newData[j++] = (byte)(bytes & 0xFF);
+                newData[j++] = (byte)((bytes >> 8) & 0xFF);
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into L8 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw L8 data, with a CTT Header.</returns>
+        public static byte[] L8pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.L8);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 4) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 4)
+            {
+                int r = ogData[i + 3];
+                int g = ogData[i + 2];
+                int b = ogData[i + 1];
+                byte gray = (byte)(0.299 * r + 0.587 * g + 0.114 * b);
+                newData[j++] = gray;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into A8 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw A8 data, with a CTT Header.</returns>
+        public static byte[] A8pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.A8);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 4) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 4)
+            {
+                newData[j++] = ogData[i];
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into LA4 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw LA4 data, with a CTT Header.</returns>
+        public static byte[] LA4pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.LA4);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 4) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 4)
+            {
+                int a4 = ogData[i] >> 4;
+                int r = ogData[i + 3];
+                int g = ogData[i + 2];
+                int b = ogData[i + 1];
+                int gray4 = (int)(0.299 * r + 0.587 * g + 0.114 * b) >> 4;
+                byte pixel = (byte)((a4 << 4) | gray4);
+
+                newData[j++] = pixel;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into L4 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw L4 data, with a CTT Header.</returns>
+        public static byte[] L4pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.L4);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 8) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 8)
+            {
+                int r_1 = ogData[i + 3];
+                int g_1 = ogData[i + 2];
+                int b_1 = ogData[i + 1];
+                int r_2 = ogData[i + 7];
+                int g_2 = ogData[i + 6];
+                int b_2 = ogData[i + 5];
+                byte gray4_1 = (byte)((int)(0.299 * r_1 + 0.587 * g_1 + 0.114 * b_1) >> 4);
+                byte gray4_2 = (byte)((int)(0.299 * r_2 + 0.587 * g_2 + 0.114 * b_2) >> 4);
+                byte pixels = (byte)((gray4_1 << 4) | gray4_2);
+
+                newData[j++] = pixels;
+            }
+            return newData;
+        }
+
+        /// <summary>
+        /// Converts RGBA8888 bytes into A4 bytes.
+        /// </summary>
+        /// <param name="ogData">Raw RGBA8888 byte array, with CTT Header.</param>
+        /// <returns>Returns a byte array containing raw A4 data, with a CTT Header.</returns>
+        public static byte[] A4pack(byte[] ogData)
+        {
+            ushort width = (ushort)(ogData[0x20] | (ogData[0x21] << 8));
+            ushort height = (ushort)(ogData[0x22] | (ogData[0x23] << 8));
+            byte[] header = CTTHeader(width, height, (int)Format.A4);
+            byte[] newData = new byte[((ogData.Length - 0x80) / 8) + 0x80];
+
+            for (int i = 0; i < 0x80; i++)
+            {
+                newData[i] = header[i];
+            }
+
+            int j = 0x80;
+            for (int i = 0x80; i < ogData.Length; i += 4)
+            {
+                int a4_1 = ogData[i] >> 4;
+                int a4_2 = ogData[i + 4] >> 4;
+                byte pixels = (byte)((a4_1 << 4) | a4_2);
+
+                newData[j++] = pixels;
             }
             return newData;
         }
