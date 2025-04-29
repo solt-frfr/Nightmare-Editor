@@ -50,6 +50,7 @@ namespace Nightmare_Editor
         private readonly string linkPath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\textures.json";
 
         private List<TextBox> unfiltered = new List<TextBox>();
+        private List<TextBox> filtered = new List<TextBox>();
 
         public Editor()
         {
@@ -1382,12 +1383,15 @@ namespace Nightmare_Editor
             try
             {
                 Files2.Children.Clear();
+                filtered.Clear();
                 string filter = "";
+                Search.Text = "";
                 if (Sort.SelectedIndex == 0)
                 {
                     foreach (var textbox in unfiltered)
                     {
                         Files2.Children.Add(textbox);
+                        filtered.Add(textbox);
                     }
                 }
                 else
@@ -1417,6 +1421,7 @@ namespace Nightmare_Editor
                         if (textbox.Text.Contains(filter))
                         {
                             Files2.Children.Add(textbox);
+                            filtered.Add(textbox);
                         }
                     }
                 }
@@ -1471,6 +1476,36 @@ namespace Nightmare_Editor
                         Console.WriteLine("Save file operation canceled.");
                     }
                     Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Temp\{meta.ID}\{meta.Name}", true);
+                }
+                catch { }
+            }
+        }
+
+        private void Search_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                try
+                {
+                    Files2.Children.Clear();
+                    string filter = Search.Text;
+                    if (string.IsNullOrWhiteSpace(filter))
+                    {
+                        foreach (var textbox in filtered)
+                        {
+                            Files2.Children.Add(textbox);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var textbox in filtered)
+                        {
+                            if (textbox.Text.Contains(filter))
+                            {
+                                Files2.Children.Add(textbox);
+                            }
+                        }
+                    }
                 }
                 catch { }
             }

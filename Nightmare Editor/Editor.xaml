@@ -66,6 +66,7 @@
         <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20"/>
+                <RowDefinition Height="20"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <ComboBox Name="Sort" SelectionChanged="Files2_Filter">
@@ -76,7 +77,8 @@
                 <ComboBoxItem Content="Model files(*.pmo)"/>
                 <ComboBoxItem Content="Map files(*.pmp)"/>
             </ComboBox>
-            <ScrollViewer Name="Files2_Scroll" VerticalScrollBarVisibility="Auto" Grid.Row="1">
+            <TextBox Name="Search" KeyDown="Search_KeyDown" Grid.Row="1"/>
+            <ScrollViewer Name="Files2_Scroll" VerticalScrollBarVisibility="Auto" Grid.Row="2">
                 <Grid Grid.Row="1">
                     <Grid.ContextMenu>
                         <ContextMenu>
