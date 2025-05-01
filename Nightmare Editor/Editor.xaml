@@ -110,9 +110,11 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.ColumnSpan="2" Grid.Row="1" x:Name="Queued" VerticalAlignment="Top" Margin="3" Panel.ZIndex="2">
-                <!-- TextBox controls will be added here dynamically -->
-            </StackPanel>
+            <ScrollViewer Grid.ColumnSpan="2" Grid.Row="1"  Panel.ZIndex="2">
+                <StackPanel x:Name="Queued" VerticalAlignment="Top" Margin="3" Panel.ZIndex="2">
+                    <!-- TextBox controls will be added here dynamically -->
+                </StackPanel>
+            </ScrollViewer>
             <TextBox Name="QueueBox" Grid.ColumnSpan="2" Grid.Row="1" IsReadOnly="True" Focusable="False" BorderBrush="#4080f0" Background="LightGoldenrodYellow" BorderThickness="3" Panel.ZIndex="1"/>
             <TextBlock FontStyle="Italic" Grid.ColumnSpan="2" Foreground="LightGoldenrodYellow" Margin="5" FontSize="10" VerticalAlignment="Bottom" HorizontalAlignment="Right"><Run Text="Files listed here will be packed in the order shown into the rbins"/><LineBreak/><Run Text="below it. .l2d, .pmo, and .ctt files will be packed themselves first."/></TextBlock>
             <TextBlock Text="Packing Queue" Grid.ColumnSpan="2" Foreground="White" FontWeight="SemiBold" Margin="5" FontSize="25" VerticalAlignment="Center"/>
@@ -175,6 +177,12 @@
                 <Image Name="TextureTemp" Source="Images/plus.png" RenderOptions.BitmapScalingMode="HighQuality" Visibility="Hidden"/>
                 <TextBox Name="LocationTemp" Visibility="Hidden"/>
                 <Grid Grid.Column="1" Grid.RowSpan="2" Margin="5" Background="DarkGray">
+                    <Grid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Save Embedded Texture"
+                              Click="SaveTex_Click" />
+                        </ContextMenu>
+                    </Grid.ContextMenu>
                     <Rectangle Name="TransRights" Stretch="Fill">
                         <Rectangle.Fill>
                             <DrawingBrush TileMode="Tile" Viewport="0,0,32,32" ViewportUnits="Absolute">
@@ -188,6 +196,12 @@
                     <TextBox Name="Location" Text="Linked Texture" VerticalAlignment="Bottom" Height="20" HorizontalContentAlignment="Center" IsReadOnly="True" Focusable="False" Cursor="Arrow"/>
                 </Grid>
                 <Grid Grid.Row="1" Margin="5" Background="DarkGray">
+                    <Grid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Save Embedded Texture"
+                              Click="SaveTex_Click" />
+                        </ContextMenu>
+                    </Grid.ContextMenu>
                     <Rectangle Name="TransWrongs" Stretch="Fill">
                         <Rectangle.Fill>
                             <DrawingBrush TileMode="Tile" Viewport="0,0,32,32" ViewportUnits="Absolute">

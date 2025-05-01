@@ -17,9 +17,10 @@ using Newtonsoft;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using SevenZip;
 using Pulsar;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 
 namespace Nightmare_Editor
@@ -499,7 +500,7 @@ namespace Nightmare_Editor
                         {
                             try
                             {
-                                File.Move(file2, truefile2);
+                                File.Move(file2, truefile2, true);
                                 File.Delete(file2.Replace(".png", ".bmp"));
                             }
                             catch { }
@@ -539,6 +540,32 @@ namespace Nightmare_Editor
                     {
                         if (arr.Length >= 2 && arr[0] == FileName.Text)
                         {
+                            if (!File.Exists(arr[1]))
+                            {
+                                MessageBox.Show($"{arr[1]} could not be found. Removing from the texture list.");
+                                textureLinks.Remove(arr);
+                                QuickJson(true);
+                                if (from == 2)
+                                {
+                                    string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\", $"{selectedTextBox2.Text}.*.png", SearchOption.AllDirectories);
+                                    FileLink.Text = files2[0];
+
+                                }
+                                else if (from == 3)
+                                {
+                                    string[] files2 = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\", $"{selectedTextBox3.Text}.*.png", SearchOption.AllDirectories);
+                                    FileLink.Text = files2[0];
+                                }
+                                using (FileStream fs = new FileStream(FileLink.Text, FileMode.Open, FileAccess.Read))
+                                {
+                                    bitmap.BeginInit();
+                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                    bitmap.StreamSource = fs;
+                                    bitmap.EndInit();
+                                }
+                                Texture.Source = bitmap;
+                                break;
+                            }
                             using (FileStream fs = new FileStream(arr[1], FileMode.Open, FileAccess.Read))
                             {
                                 bitmap2.BeginInit();
@@ -1488,6 +1515,10 @@ namespace Nightmare_Editor
                 try
                 {
                     Files2.Children.Clear();
+                    if (filtered.Count() == 0)
+                    {
+                        filtered = unfiltered;
+                    }
                     string filter = Search.Text;
                     if (string.IsNullOrWhiteSpace(filter))
                     {
@@ -1508,6 +1539,49 @@ namespace Nightmare_Editor
                     }
                 }
                 catch { }
+            }
+        }
+
+        private void SaveTex_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Texture File|*.png";
+            saveFileDialog.Title = "Save extracted texture...";
+            saveFileDialog.ShowDialog();
+
+            if (!string.IsNullOrWhiteSpace(saveFileDialog.FileName))
+            {
+                int from = FileName.Text.Split('\\').Length;
+                string file = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\";
+                if (from == 2)
+                {
+                    file += $@"{selectedTextBox2.Text}";
+                }
+                else if (from == 3)
+                {
+                    file += $@"{Path.GetFileNameWithoutExtension(selectedTextBox2.Text)}\{selectedTextBox3.Text}";
+                }
+
+                byte[] buffer = new byte[0x80];
+                using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                {
+                    fs.Read(buffer, 0, buffer.Length);
+                }
+                byte formatByte = buffer[0x1C]; // read byte from file
+                NewTools.CTT.Format formatenum = (NewTools.CTT.Format)formatByte;
+                string format = formatenum.ToString();
+                if (format == "ETC1" || format == "ETC1A4")
+                {
+                    var image = CTT.Decode(file);
+                    string[] files2 = Directory.GetFiles($@"{Path.GetDirectoryName(file)}", $"{Path.GetFileName(file)}.*.png", SearchOption.AllDirectories);
+                    string file2 = files2[0];
+                    File.Copy(file2, saveFileDialog.FileName);
+                }
+                else
+                {
+                    var image = CTT.Decode(file);
+                    image.SaveAsPng(saveFileDialog.FileName);
+                }
             }
         }
     }

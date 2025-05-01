@@ -52,10 +52,10 @@ namespace Nightmare_Editor.NewTools
         }
 
         /// <summary>
-        /// Decode a CTT texture into a PNG file.
+        /// Decode a CTT texture into a PNG file. Returns a raw image if needed.
         /// </summary>
         /// <param name="file">Filepath containing a CTT file.</param>
-        public static void Decode(string file)
+        public static Image Decode(string file)
         {
             byte[] header;
             byte[] data;
@@ -78,9 +78,10 @@ namespace Nightmare_Editor.NewTools
             {
                 File.Copy(file, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileName(file)}", true);
                 Toolkit.CTTUnpack(Path.GetFileName(file), $@"{Path.GetDirectoryName(file)}\");
-                return;
+                return null;
             }
             image.SaveAsPng(file + "." + format + ".png");
+            return image;
         }
 
         /// <summary>

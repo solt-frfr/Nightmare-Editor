@@ -115,7 +115,7 @@ namespace Nightmare_Editor.NewTools
                 File.Delete(tempdir + Path.GetFileName(file));
             }
             File.Copy(archive, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\" + Path.GetFileName(archive), true);
-            Toolkit.ArcUnpack(Path.GetFileName(archive), Path.GetDirectoryName(archive));
+            Toolkit.ArcUnpack(Path.GetFileName(archive), $@"{Path.GetDirectoryName(archive)}\");
         }
         public static void Unpack()
         {
