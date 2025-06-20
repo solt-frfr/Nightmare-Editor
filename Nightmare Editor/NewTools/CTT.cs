@@ -301,21 +301,34 @@ namespace Nightmare_Editor.NewTools
                                             byte g = 0x00;
                                             byte b = 0x00;
                                             byte a = 0x00;
-
-                                            if (alpha)
+                                            try
                                             {
-                                                r = rawData[byteOffset + 3];
-                                                g = rawData[byteOffset + 2];
-                                                b = rawData[byteOffset + 1];
-                                                a = rawData[byteOffset + 0];
-                                                image32.DangerousGetPixelRowMemory(imgY).Span[imgX] = new Rgba32(r, g, b, a);
+                                                if (alpha)
+                                                {
+                                                    r = rawData[byteOffset + 3];
+                                                    g = rawData[byteOffset + 2];
+                                                    b = rawData[byteOffset + 1];
+                                                    a = rawData[byteOffset + 0];
+                                                    image32.DangerousGetPixelRowMemory(imgY).Span[imgX] = new Rgba32(r, g, b, a);
+                                                }
+                                                else
+                                                {
+                                                    r = rawData[byteOffset + 2];
+                                                    g = rawData[byteOffset + 1];
+                                                    b = rawData[byteOffset + 0];
+                                                    image24.DangerousGetPixelRowMemory(imgY).Span[imgX] = new Rgb24(r, g, b);
+                                                }
                                             }
-                                            else
+                                            catch
                                             {
-                                                r = rawData[byteOffset + 2];
-                                                g = rawData[byteOffset + 1];
-                                                b = rawData[byteOffset + 0];
-                                                image24.DangerousGetPixelRowMemory(imgY).Span[imgX] = new Rgb24(r, g, b);
+                                                if (alpha)
+                                                {
+                                                    return image32;
+                                                }
+                                                else
+                                                {
+                                                    return image24;
+                                                }
                                             }
                                         }
                                     }

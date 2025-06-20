@@ -17,7 +17,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="45"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="2" Panel.ZIndex="2">
+        <Grid Grid.Row="2" Panel.ZIndex="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="5*"/>
@@ -100,7 +100,10 @@
                 </Grid>
             </ScrollViewer>
         </Grid>
-        <Grid Name="QueueWindow" Grid.RowSpan="3" Grid.Column="2" Visibility="Collapsed" Background="Black" Panel.ZIndex="1">
+        <Grid Name="AnimWindow" Grid.RowSpan="3" Grid.ColumnSpan="3" Visibility="Visible" Panel.ZIndex="2">
+            
+        </Grid>
+        <Grid Name="QueueWindow" Grid.RowSpan="3" Grid.Column="2" Visibility="Collapsed" Background="Black" Panel.ZIndex="3">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="8*"/>

@@ -32,12 +32,14 @@ namespace Nightmare_Editor
         /// This is largely copied from Pulsar. It's software also developed by me.
         private List<string> enabledmods = new List<string>();
         private bool isInitialized = false;
+        private List<string[]> music = new List<string[]>();
 
         public Manager()
         {
             InitializeComponent();
             ModsWindow(true);
             SettingsWindow.Visibility = Visibility.Collapsed;
+            MusicWindow.Visibility = Visibility.Collapsed;
             Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods");
             string settingspath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\settings.json";
             if (!System.IO.File.Exists(settingspath))
@@ -61,6 +63,47 @@ namespace Nightmare_Editor
                 };
                 string jsonString = JsonSerializer.Serialize<List<string>>(new List<string>(), jsonoptions);
                 System.IO.File.WriteAllText(enabledmodspath, jsonString);
+            }
+            string musicpath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\music.json";
+            if (!System.IO.File.Exists(musicpath))
+            {
+                var jsonoptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                string jsonString = JsonSerializer.Serialize<List<string[]>>(new List<string[]>(), jsonoptions);
+                System.IO.File.WriteAllText(musicpath, jsonString);
+            }
+            else
+            {
+                QuickMusicJson(false);
+                foreach (var arr in music)
+                {
+                    if (arr.Length >= 3 && arr[1] == "bgm_001.bcstm")
+                    {
+                        TTF.SelectedIndex = Int32.Parse(arr[2]);
+                    }
+                    else if (arr.Length >= 3 && arr[1] == "bgm_014.bcstm")
+                    {
+                        TTB.SelectedIndex = Int32.Parse(arr[2]);
+                    }
+                    else if (arr.Length >= 3 && arr[1] == "bgm_011.bcstm")
+                    {
+                        TGF.SelectedIndex = Int32.Parse(arr[2]);
+                    }
+                    else if (arr.Length >= 3 && arr[1] == "bgm_020.bcstm")
+                    {
+                        TGB.SelectedIndex = Int32.Parse(arr[2]);
+                    }
+                    else if (arr.Length >= 3 && arr[1] == "bgm_012.bcstm")
+                    {
+                        NWF.SelectedIndex = Int32.Parse(arr[2]);
+                    }
+                    else if (arr.Length >= 3 && arr[1] == "bgm_021.bcstm")
+                    {
+                        NWB.SelectedIndex = Int32.Parse(arr[2]);
+                    }
+                }
             }
             Refresh();
             isInitialized = true;
@@ -322,12 +365,18 @@ namespace Nightmare_Editor
             {
                 settingsImage.Source = new BitmapImage(new Uri("/Images/SettingsUnsel.png", UriKind.Relative));
             }
+            var musicImage = (Image)SettingsButton.Template.FindName("MusicImage", SettingsButton);
+            if (musicImage != null)
+            {
+                musicImage.Source = new BitmapImage(new Uri("/Images/MusicUnsel.png", UriKind.Relative));
+            }
             var downloadImage = (Image)DownloadButton.Template.FindName("DownloadImage", DownloadButton);
             if (downloadImage != null)
             {
                 downloadImage.Source = new BitmapImage(new Uri("/Images/DownloadUnsel.png", UriKind.Relative));
             }
             ModsWindow(true);
+            MusicWindow.Visibility = Visibility.Collapsed;
             SettingsWindow.Visibility = Visibility.Collapsed;
         }
         private void Settings_Click(object sender, RoutedEventArgs e)
@@ -336,6 +385,11 @@ namespace Nightmare_Editor
             if (modsImage != null)
             {
                 modsImage.Source = new BitmapImage(new Uri("/Images/ModsUnsel.png", UriKind.Relative));
+            }
+            var musicImage = (Image)SettingsButton.Template.FindName("MusicImage", SettingsButton);
+            if (musicImage != null)
+            {
+                musicImage.Source = new BitmapImage(new Uri("/Images/MusicUnsel.png", UriKind.Relative));
             }
             var settingsImage = (Image)SettingsButton.Template.FindName("SettingsImage", SettingsButton);
             if (settingsImage != null)
@@ -348,7 +402,34 @@ namespace Nightmare_Editor
                 downloadImage.Source = new BitmapImage(new Uri("/Images/DownloadUnsel.png", UriKind.Relative));
             }
             ModsWindow(false);
+            MusicWindow.Visibility = Visibility.Collapsed;
             SettingsWindow.Visibility = Visibility.Visible;
+        }
+        private void Music_Click(object sender, RoutedEventArgs e)
+        {
+            var modsImage = (Image)ModsButton.Template.FindName("ModsImage", ModsButton);
+            if (modsImage != null)
+            {
+                modsImage.Source = new BitmapImage(new Uri("/Images/ModsUnsel.png", UriKind.Relative));
+            }
+            var musicImage = (Image)SettingsButton.Template.FindName("MusicImage", SettingsButton);
+            if (musicImage != null)
+            {
+                musicImage.Source = new BitmapImage(new Uri("/Images/MusicSel.png", UriKind.Relative));
+            }
+            var settingsImage = (Image)SettingsButton.Template.FindName("SettingsImage", SettingsButton);
+            if (settingsImage != null)
+            {
+                settingsImage.Source = new BitmapImage(new Uri("/Images/SettingsUnsel.png", UriKind.Relative));
+            }
+            var downloadImage = (Image)DownloadButton.Template.FindName("DownloadImage", DownloadButton);
+            if (downloadImage != null)
+            {
+                downloadImage.Source = new BitmapImage(new Uri("/Images/DownloadUnsel.png", UriKind.Relative));
+            }
+            ModsWindow(false);
+            MusicWindow.Visibility = Visibility.Visible;
+            SettingsWindow.Visibility = Visibility.Collapsed;
         }
 
         private void Download_Click(object sender, RoutedEventArgs e)
@@ -368,8 +449,75 @@ namespace Nightmare_Editor
             Refresh();
         }
 
+        private void Deploy_Click2(string deploypath)
+        {
+            Directory.Delete(deploypath, true);
+            Directory.CreateDirectory(deploypath);
+            List<string> rbins = new List<string>();
+            foreach (string ID in enabledmods)
+            {
+                try
+                {
+                    string path = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{ID}\";
+                    string[] subdirectories = Directory.GetDirectories(path);
+                    foreach (string subdir in subdirectories)
+                    {
+                        DirectoryInfo dir = new DirectoryInfo(subdir);
+                        string rbin = dir.Name;
+                        if (!rbins.Contains(rbin))
+                        {
+                            rbins.Add(rbin);
+                        }
+                    }
+                }
+                catch
+                {
+                    enabledmods.Remove(ID);
+                    QuickJson(true, enabledmods, "enabledmods.json");
+                }
+            }
+            bool stop = false;
+            foreach (string rbin in rbins)
+            {
+                if (!File.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{rbin}.rbin") || !Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\{rbin}"))
+                {
+                    stop = true;
+                    MessageBox.Show($@"Missing {rbin}.rbin. Unpack it using the unpack button in the settings tab.");
+                }
+            }
+            if (stop)
+            {
+                return;
+            }
+            foreach (string ID in enabledmods)
+            {
+                Editor.BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{ID}\", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\", false);
+            }
+            foreach (string rbin in rbins)
+            {
+                string file = rbin + ".rbin";
+                File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{file}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{file}", true);
+                try
+                {
+                    Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", true);
+                }
+                catch { }
+                Editor.BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\{Path.GetFileNameWithoutExtension(file)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", false);
+                Editor.BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\{Path.GetFileNameWithoutExtension(file)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", true);
+                MessageBox.Show("A window called ''Kingdom Hearts 3D Romhacking Suite'' will appear.\nType '2', and then press Enter.\nOnce ''Done!'' appears, press any key.");
+                Toolkit.RbinPack(file, true);
+            }
+            Directory.CreateDirectory($@"{deploypath}\sound\en\output\stream");
+            foreach (string[] track in music)
+            {
+                File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\{track[0]}", $@"{deploypath}\sound\en\output\stream\{track[1]}");
+            }
+            MessageBox.Show($@"Succesfully deployed mods to {deploypath}!");
+        }
+
         private void Deploy_Click(object sender, RoutedEventArgs e)
         {
+            string x = "";
             try
             {
                 string settingspath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\settings.json";
@@ -379,6 +527,7 @@ namespace Nightmare_Editor
                     WriteIndented = true
                 };
                 Settings settings = JsonSerializer.Deserialize<Settings>(jsonString, jsonoptions);
+                x = settings.DeployPath;
                 if (!string.IsNullOrWhiteSpace(settings.DeployPath) && settings != null)
                 {
                     DefPrevBox.SelectedIndex = settings.DefaultImage;
@@ -388,55 +537,7 @@ namespace Nightmare_Editor
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
-                        Directory.Delete(settings.DeployPath, true);
-                        Directory.CreateDirectory(settings.DeployPath);
-                        List<string> rbins = new List<string>();
-                        foreach (string ID in enabledmods)
-                        {
-                            string path = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{ID}\";
-                            string[] subdirectories = Directory.GetDirectories(path);
-                            foreach (string subdir in subdirectories)
-                            {
-                                DirectoryInfo dir = new DirectoryInfo(subdir);
-                                string rbin = dir.Name;
-                                if (!rbins.Contains(rbin))
-                                {
-                                    rbins.Add(rbin);
-                                }
-                            }
-                        }
-                        bool stop = false;
-                        foreach (string rbin in rbins)
-                        {
-                            if (!File.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{rbin}.rbin") || !Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\{rbin}"))
-                            {
-                                stop = true;
-                                MessageBox.Show($@"Missing {rbin}.rbin. Unpack it using the unpack button in the settings tab.");
-                            }
-                        }
-                        if (stop)
-                        {
-                            return;
-                        }
-                        foreach (string ID in enabledmods)
-                        {
-                            Editor.BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Mods\{ID}\", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\", false);
-                        }
-                        foreach (string rbin in rbins)
-                        {
-                            string file = rbin + ".rbin";
-                            File.Copy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current\{file}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{file}", true);
-                            try
-                            {
-                                Directory.Delete($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", true);
-                            }
-                            catch { }
-                            Editor.BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\base\{Path.GetFileNameWithoutExtension(file)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", false);
-                            Editor.BetterDirCopy($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\pack\{Path.GetFileNameWithoutExtension(file)}", $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\DDD-Toolkit\{Path.GetFileNameWithoutExtension(file)}", true);
-                            MessageBox.Show("A window called ''Kingdom Hearts 3D Romhacking Suite'' will appear.\nType '2', and then press Enter.\nOnce ''Done!'' appears, press any key.");
-                            Toolkit.RbinPack(file, true);
-                        }
-                        MessageBox.Show($@"Succesfully deployed mods to {settings.DeployPath}!");
+                        Deploy_Click2(settings.DeployPath);
                     }
                 }
                 else
@@ -444,7 +545,10 @@ namespace Nightmare_Editor
                     MessageBox.Show($@"No output directory set. Set one in the settings tab.");
                 }
             }
-            catch { }
+            catch
+            {
+                Deploy_Click2(x);
+            }
         }
 
         private void ModsWindow(bool sender)
@@ -760,6 +864,433 @@ namespace Nightmare_Editor
                     string[] files = Directory.GetFiles($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\User-Added\", "*.*", SearchOption.AllDirectories);
                     File.Copy(file.FileName, $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\User-Added\{files.Length}-{Path.GetFileName(file.FileName)}", true);
                 }
+            }
+        }
+
+        private void TTF_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool found = false;
+            foreach (var arr in music)
+            {
+                if (arr.Length >= 3 && arr[1] == "bgm_001.bcstm")
+                {
+                    if (TTF.SelectedIndex == 0)
+                    {
+                        arr[0] = $@"Music\traverseintrance\traverseintrance.bcstm";
+                        arr[2] = "0";
+                    }
+                    else if (TTF.SelectedIndex == 1)
+                    {
+                        arr[0] = $@"Music\traverseintrance\traversetown_sd.bcstm";
+                        arr[2] = "1";
+                    }
+                    else if (TTF.SelectedIndex == 2)
+                    {
+                        arr[0] = $@"Music\traverseintrance\traversetown_hd.bcstm";
+                        arr[2] = "2";
+                    }
+                    else if (TTF.SelectedIndex == 3)
+                    {
+                        arr[0] = $@"Music\traverseintrance\traversetown_com.bcstm";
+                        arr[2] = "3";
+                    }
+                    else if (TTF.SelectedIndex == 4)
+                    {
+                        arr[0] = $@"Music\traverseintrance\traversetown_coded.bcstm";
+                        arr[2] = "4";
+                    }
+                    else if (TTF.SelectedIndex == 5)
+                    {
+                        arr[0] = $@"Music\traverseintrance\traversetown_recoded.bcstm";
+                        arr[2] = "5";
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (TTF.SelectedIndex == 0)
+                {
+                    music.Add([$@"Music\traverseintrance\traverseintrance.bcstm", "bgm_001.bcstm", "0"]);
+                }
+                else if (TTF.SelectedIndex == 1)
+                {
+                    music.Add([$@"Music\traverseintrance\traversetown_sd.bcstm", "bgm_001.bcstm", "1"]);
+                }
+                else if (TTF.SelectedIndex == 2)
+                {
+                    music.Add([$@"Music\traverseintrance\traversetown_hd.bcstm", "bgm_001.bcstm", "2"]);
+                }
+                else if (TTF.SelectedIndex == 3)
+                {
+                    music.Add([$@"Music\traverseintrance\traversetown_com.bcstm", "bgm_001.bcstm", "3"]);
+                }
+                else if (TTF.SelectedIndex == 4)
+                {
+                    music.Add([$@"Music\traverseintrance\traversetown_coded.bcstm", "bgm_001.bcstm", "4"]);
+                }
+                else if (TTF.SelectedIndex == 5)
+                {
+                    music.Add([$@"Music\traverseintrance\traversetown_recoded.bcstm", "bgm_001.bcstm", "5"]);
+                }
+            }
+            QuickMusicJson(true);
+        }
+
+        private void TTB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool found = false;
+            foreach (var arr in music)
+            {
+                if (arr.Length >= 3 && arr[1] == "bgm_014.bcstm")
+                {
+                    if (TTB.SelectedIndex == 0)
+                    {
+                        arr[0] = $@"Music\handtohand\handtohand.bcstm";
+                        arr[2] = "0";
+                    }
+                    else if (TTB.SelectedIndex == 1)
+                    {
+                        arr[0] = $@"Music\handtohand\handinhand_sd.bcstm";
+                        arr[2] = "1";
+                    }
+                    else if (TTB.SelectedIndex == 2)
+                    {
+                        arr[0] = $@"Music\handtohand\handinhand_hd.bcstm";
+                        arr[2] = "2";
+                    }
+                    else if (TTB.SelectedIndex == 3)
+                    {
+                        arr[0] = $@"Music\handtohand\handinhand_com.bcstm";
+                        arr[2] = "3";
+                    }
+                    else if (TTB.SelectedIndex == 4)
+                    {
+                        arr[0] = $@"Music\handtohand\nightoffate_coded.bcstm";
+                        arr[2] = "4";
+                    }
+                    else if (TTB.SelectedIndex == 5)
+                    {
+                        arr[0] = $@"Music\handtohand\nightoffate_recoded.bcstm";
+                        arr[2] = "5";
+                    }
+                    else if (TTB.SelectedIndex == 6)
+                    {
+                        arr[0] = $@"Music\handtohand\nightoffate_coded.bcstm";
+                        arr[2] = "6";
+                    }
+                    else if (TTB.SelectedIndex == 7)
+                    {
+                        arr[0] = $@"Music\handtohand\nightoffate_recoded.bcstm";
+                        arr[2] = "7";
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (TTB.SelectedIndex == 0)
+                {
+                    music.Add([$@"Music\handtohand\handinhand.bcstm", "bgm_014.bcstm", "0"]);
+                }
+                else if (TTB.SelectedIndex == 1)
+                {
+                    music.Add([$@"Music\handtohand\handinhand_sd.bcstm", "bgm_014.bcstm", "1"]);
+                }
+                else if (TTB.SelectedIndex == 2)
+                {
+                    music.Add([$@"Music\handtohand\handinhand_hd.bcstm", "bgm_014.bcstm", "2"]);
+                }
+                else if (TTB.SelectedIndex == 3)
+                {
+                    music.Add([$@"Music\handtohand\handinhand_com.bcstm", "bgm_014.bcstm", "3"]);
+                }
+                else if (TTB.SelectedIndex == 4)
+                {
+                    music.Add([$@"Music\handtohand\nightoffate_sd.bcstm", "bgm_014.bcstm", "4"]);
+                }
+                else if (TTB.SelectedIndex == 5)
+                {
+                    music.Add([$@"Music\handtohand\nightoffate_hd.bcstm", "bgm_014.bcstm", "5"]);
+                }
+                else if (TTB.SelectedIndex == 6)
+                {
+                    music.Add([$@"Music\handtohand\nightoffate_coded.bcstm", "bgm_014.bcstm", "6"]);
+                }
+                else if (TTB.SelectedIndex == 7)
+                {
+                    music.Add([$@"Music\handtohand\nightoffate_recoded.bcstm", "bgm_014.bcstm", "7"]);
+                }
+            }
+            QuickMusicJson(true);
+        }
+
+        private void TGF_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool found = false;
+            foreach (var arr in music)
+            {
+                if (arr.Length >= 3 && arr[1] == "bgm_011.bcstm")
+                {
+                    if (TGF.SelectedIndex == 0)
+                    {
+                        arr[0] = $@"Music\accessthegrid\accessthegrid.bcstm";
+                        arr[2] = "0";
+                    }
+                    else if (TGF.SelectedIndex == 1)
+                    {
+                        arr[0] = $@"Music\accessthegrid\spaceparanoids_sd.bcstm";
+                        arr[2] = "1";
+                    }
+                    else if (TGF.SelectedIndex == 2)
+                    {
+                        arr[0] = $@"Music\accessthegrid\spaceparanoids_hd.bcstm";
+                        arr[2] = "2";
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (TGF.SelectedIndex == 0)
+                {
+                    music.Add([$@"Music\accessthegrid\accessthegrid.bcstm", "bgm_011.bcstm", "0"]);
+                }
+                else if (TGF.SelectedIndex == 1)
+                {
+                    music.Add([$@"Music\accessthegrid\spaceparanoids_sd.bcstm", "bgm_011.bcstm", "1"]);
+                }
+                else if (TGF.SelectedIndex == 2)
+                {
+                    music.Add([$@"Music\accessthegrid\spaceparanoids_hd.bcstm", "bgm_011.bcstm", "2"]);
+                }
+            }
+            QuickMusicJson(true);
+        }
+
+        private void TGB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool found = false;
+            foreach (var arr in music)
+            {
+                if (arr.Length >= 3 && arr[1] == "bgm_020.bcstm")
+                {
+                    if (TGB.SelectedIndex == 0)
+                    {
+                        arr[0] = $@"Music\digitaldomination\digitaldomination.bcstm";
+                        arr[2] = "0";
+                    }
+                    else if (TGB.SelectedIndex == 1)
+                    {
+                        arr[0] = $@"Music\digitaldomination\bytebashing_sd.bcstm";
+                        arr[2] = "1";
+                    }
+                    else if (TGB.SelectedIndex == 2)
+                    {
+                        arr[0] = $@"Music\digitaldomination\bytebashing_hd.bcstm";
+                        arr[2] = "2";
+                    }
+                    else if (TGB.SelectedIndex == 3)
+                    {
+                        arr[0] = $@"Music\digitaldomination\bytestriking.bcstm";
+                        arr[2] = "3";
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (TGB.SelectedIndex == 0)
+                {
+                    music.Add([$@"Music\digitaldomination\digitaldomination.bcstm", "bgm_020.bcstm", "0"]);
+                }
+                else if (TGB.SelectedIndex == 1)
+                {
+                    music.Add([$@"Music\digitaldomination\bytebashing_sd.bcstm", "bgm_020.bcstm", "1"]);
+                }
+                else if (TGB.SelectedIndex == 2)
+                {
+                    music.Add([$@"Music\digitaldomination\bytebashing_hd.bcstm", "bgm_020.bcstm", "2"]);
+                }
+                else if (TGB.SelectedIndex == 3)
+                {
+                    music.Add([$@"Music\digitaldomination\bytestriking.bcstm", "bgm_020.bcstm", "3"]);
+                }
+            }
+            QuickMusicJson(true);
+        }
+
+        private void NWF_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool found = false;
+            foreach (var arr in music)
+            {
+                if (arr.Length >= 3 && arr[1] == "bgm_012.bcstm")
+                {
+                    if (NWF.SelectedIndex == 0)
+                    {
+                        arr[0] = $@"Music\sacreddistance\sacreddistance.bcstm";
+                        arr[2] = "0";
+                    }
+                    else if (NWF.SelectedIndex == 1)
+                    {
+                        arr[0] = $@"Music\sacreddistance\sacredmoon_sd.bcstm";
+                        arr[2] = "1";
+                    }
+                    else if (NWF.SelectedIndex == 2)
+                    {
+                        arr[0] = $@"Music\sacreddistance\sacredmoon_hd.bcstm";
+                        arr[2] = "2";
+                    }
+                    else if (NWF.SelectedIndex == 3)
+                    {
+                        arr[0] = $@"Music\sacreddistance\sacredmoon_days_sd.bcstm";
+                        arr[2] = "3";
+                    }
+                    else if (NWF.SelectedIndex == 4)
+                    {
+                        arr[0] = $@"Music\sacreddistance\sacredmoon_days_hd.bcstm";
+                        arr[2] = "4";
+                    }
+                    else if (NWF.SelectedIndex == 5)
+                    {
+                        arr[0] = $@"Music\sacreddistance\mysticmoon_sd.bcstm";
+                        arr[2] = "5";
+                    }
+                    else if (NWF.SelectedIndex == 6)
+                    {
+                        arr[0] = $@"Music\sacreddistance\mysticmoon_hd.bcstm";
+                        arr[2] = "6";
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (NWF.SelectedIndex == 0)
+                {
+                    music.Add([$@"Music\sacreddistance\sacreddistance.bcstm", "bgm_012.bcstm", "0"]);
+                }
+                else if (NWF.SelectedIndex == 1)
+                {
+                    music.Add([$@"Music\sacreddistance\sacredmoon_sd.bcstm", "bgm_012.bcstm", "1"]);
+                }
+                else if (NWF.SelectedIndex == 2)
+                {
+                    music.Add([$@"Music\sacreddistance\sacredmoon_hd.bcstm", "bgm_012.bcstm", "2"]);
+                }
+                else if (NWF.SelectedIndex == 3)
+                {
+                    music.Add([$@"Music\sacreddistance\sacredmoon_days_sd.bcstm", "bgm_012.bcstm", "3"]);
+                }
+                else if (NWF.SelectedIndex == 4)
+                {
+                    music.Add([$@"Music\sacreddistance\sacredmoon_days_hd.bcstm", "bgm_012.bcstm", "4"]);
+                }
+                else if (NWF.SelectedIndex == 5)
+                {
+                    music.Add([$@"Music\sacreddistance\mysticmoon_sd.bcstm", "bgm_012.bcstm", "5"]);
+                }
+                else if (NWF.SelectedIndex == 6)
+                {
+                    music.Add([$@"Music\sacreddistance\mysticmoon_hd.bcstm", "bgm_012.bcstm", "6"]);
+                }
+            }
+            QuickMusicJson(true);
+        }
+
+        private void NWB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool found = false;
+            foreach (var arr in music)
+            {
+                if (arr.Length >= 3 && arr[1] == "bgm_021.bcstm")
+                {
+                    if (NWB.SelectedIndex == 0)
+                    {
+                        arr[0] = $@"Music\deepdrop\deepdrop.bcstm";
+                        arr[2] = "0";
+                    }
+                    else if (NWB.SelectedIndex == 1)
+                    {
+                        arr[0] = $@"Music\deepdrop\deepdrive_sd.bcstm";
+                        arr[2] = "1";
+                    }
+                    else if (NWB.SelectedIndex == 2)
+                    {
+                        arr[0] = $@"Music\deepdrop\deepdrive_hd.bcstm";
+                        arr[2] = "2";
+                    }
+                    else if (NWB.SelectedIndex == 3)
+                    {
+                        arr[0] = $@"Music\deepdrop\criticaldrive_sd.bcstm";
+                        arr[2] = "3";
+                    }
+                    else if (NWB.SelectedIndex == 4)
+                    {
+                        arr[0] = $@"Music\deepdrop\criticaldrive_hd.bcstm";
+                        arr[2] = "4";
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                if (NWB.SelectedIndex == 0)
+                {
+                    music.Add([$@"Music\deepdrop\deepdrop.bcstm", "bgm_021.bcstm", "0"]);
+                }
+                else if (NWB.SelectedIndex == 1)
+                {
+                    music.Add([$@"Music\deepdrop\deepdrive_sd.bcstm", "bgm_021.bcstm", "1"]);
+                }
+                else if (NWB.SelectedIndex == 2)
+                {
+                    music.Add([$@"Music\deepdrop\deepdrive_hd.bcstm", "bgm_021.bcstm", "2"]);
+                }
+                else if (NWB.SelectedIndex == 3)
+                {
+                    music.Add([$@"Music\deepdrop\criticaldrive_sd.bcstm", "bgm_021.bcstm", "3"]);
+                }
+                else if (NWB.SelectedIndex == 4)
+                {
+                    music.Add([$@"Music\deepdrop\criticaldrive_hd.bcstm", "bgm_021.bcstm", "4"]);
+                }
+            }
+            QuickMusicJson(true);
+        }
+        private void QuickMusicJson(bool write)
+        {
+            string musicpath = $@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\music.json";
+            if (write)
+            {
+                if (!isInitialized)
+                {
+                    return;
+                }
+                var jsonoptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                MusicList musiclist = new MusicList();
+                musiclist.Music = music;
+                string jsonString = JsonSerializer.Serialize<MusicList>(musiclist, jsonoptions);
+                File.WriteAllText(musicpath, jsonString);
+            }
+            else
+            {
+                var jsonoptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                string jsonString = File.ReadAllText(musicpath);
+                music = JsonSerializer.Deserialize<MusicList>(jsonString, jsonoptions).Music;
             }
         }
     }

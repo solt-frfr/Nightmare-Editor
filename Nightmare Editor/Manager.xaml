@@ -42,8 +42,9 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
-            <Grid>
+            <Grid VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
@@ -57,6 +58,15 @@
                     </Button>
                 </Grid>
                 <Grid Grid.Column="1">
+                    <Button Name="MusicButton" Margin="5" Click="Music_Click" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Image Name="MusicImage" Source="/Images/SettingsUnsel.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+                <Grid Grid.Column="2">
                     <Button Name="SettingsButton" Margin="5" Click="Settings_Click" Cursor="Hand">
                         <Button.Template>
                             <ControlTemplate>
@@ -188,7 +198,7 @@
             </Button>
             <TextBlock Foreground="#e8feff" Grid.ColumnSpan="2" Grid.Column="5" HorizontalAlignment="Center" Text="Find More" VerticalAlignment="Center" FontSize="25" FontWeight="SemiBold"/>
         </Grid>
-        <Grid Name="SettingsWindow" Grid.Row="1" Grid.ColumnSpan="2" Visibility="Visible">
+        <Grid Name="SettingsWindow" Grid.Row="1" Grid.ColumnSpan="2" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -238,6 +248,77 @@
                 </Grid.RowDefinitions>
                 <TextBlock Text="About Exam Editor" Foreground="White" FontSize="25" FontWeight="SemiBold" TextDecorations="Underline"/>
                 <TextBox IsReadOnly="True" Grid.Row="1" Foreground="#b8dffd" Background="#005ada" BorderThickness="0" FontSize="12" VerticalScrollBarVisibility="Auto" TextWrapping="WrapWithOverflow" Text="Exam Editor is a mod manager made by Solt11.&#xA;Current Version: Open Beta&#xD;&#xA;&#xD;&#xA;Nightmare Editor is the real program, and I go more in-depth on my explanations about what and why I made this in the FAQ section of Nightmare Editor's Help Window.&#xD;&#xA;&#xD;&#xA;Q: Isn't this just Pulsar?&#xD;&#xA;A: Yes."/>
+            </Grid>
+        </Grid>
+        <Grid Name="MusicWindow" Grid.Row="1" Grid.ColumnSpan="2" Visibility="Visible">
+            <Grid Background="#005ada">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Music Selector" Foreground="White" FontSize="25" FontWeight="SemiBold" TextDecorations="Underline"/>
+                <TextBlock Text="This was done quickly and is not cleaned up. It will be before release." Foreground="White" FontSize="18" Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Center"/>
+                <TextBlock Text="Traverse Town Field Theme" Foreground="White" FontSize="18" Grid.Row="2" VerticalAlignment="Center"/>
+                <TextBlock Text="Traverse Town Battle Theme" Foreground="White" FontSize="18" Grid.Row="3" VerticalAlignment="Center"/>
+                <TextBlock Text="The Grid Field Theme" Foreground="White" FontSize="18" Grid.Row="4" VerticalAlignment="Center"/>
+                <TextBlock Text="The Grid Battle Theme" Foreground="White" FontSize="18" Grid.Row="5" VerticalAlignment="Center"/>
+                <TextBlock Text="TWTNW Field Theme" Foreground="White" FontSize="18" Grid.Row="6" VerticalAlignment="Center"/>
+                <TextBlock Text="TWTNW Battle Theme" Foreground="White" FontSize="18" Grid.Row="7" VerticalAlignment="Center"/>
+                <ComboBox Name="TTF" Grid.Row="2" Grid.Column="1" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="TTF_SelectionChanged">
+                    <ComboBoxItem IsSelected="True" Content="Traverse in Trance (from Dream Drop Distance)"/>
+                    <ComboBoxItem Content="Traverse Town (from Kingdom Hearts)"/>
+                    <ComboBoxItem Content="Traverse Town (from HD I.5 ReMIX)"/>
+                    <ComboBoxItem Content="Traverse Town (from Chain of Memories)"/>
+                    <ComboBoxItem Content="Traverse Town (from coded)"/>
+                    <ComboBoxItem Content="Traverse Town (from Re:coded)"/>
+                </ComboBox>
+                <ComboBox Name="TTB" Grid.Row="3" Grid.Column="1" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="TTB_SelectionChanged">
+                    <ComboBoxItem IsSelected="True" Content="Hand to Hand (from Dream Drop Distance)"/>
+                    <ComboBoxItem Content="Hand in Hand (from Kingdom Hearts)"/>
+                    <ComboBoxItem Content="Hand in Hand (from HD I.5 ReMIX)"/>
+                    <ComboBoxItem Content="Hand in Hand (from Chain of Memories)"/>
+                    <ComboBoxItem Content="Night of Fate (from Kingdom Hearts)"/>
+                    <ComboBoxItem Content="Night of Fate (from HD I.5 ReMIX)"/>
+                    <ComboBoxItem Content="Night of Fate (from coded)"/>
+                    <ComboBoxItem Content="Night of Fate (from Re:coded)"/>
+                </ComboBox>
+                <ComboBox Name="TGF" Grid.Row="4" Grid.Column="1" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="TGF_SelectionChanged">
+                    <ComboBoxItem IsSelected="True" Content="Access the Grid (from Dream Drop Distance)"/>
+                    <ComboBoxItem Content="Space Paranoids (from Kingdom Hearts II)"/>
+                    <ComboBoxItem Content="Space Paranoids (from HD II.5 ReMIX)"/>
+                </ComboBox>
+                <ComboBox Name="TGB" Grid.Row="5" Grid.Column="1" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="TGB_SelectionChanged">
+                    <ComboBoxItem IsSelected="True" Content="Digital Domination (from Dream Drop Distance)"/>
+                    <ComboBoxItem Content="Byte Bashing (from Kingdom Hearts II)"/>
+                    <ComboBoxItem Content="Byte Bashing (from HD II.5 ReMIX)"/>
+                    <ComboBoxItem Content="Byte Striking (from HD II.5 ReMIX)"/>
+                </ComboBox>
+                <ComboBox Name="NWF" Grid.Row="6" Grid.Column="1" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="NWF_SelectionChanged">
+                    <ComboBoxItem IsSelected="True" Content="Sacred Distance (from Dream Drop Distance)"/>
+                    <ComboBoxItem Content="Sacred Moon (from Kingdom Hearts II)"/>
+                    <ComboBoxItem Content="Sacred Moon (from HD II.5 ReMIX)"/>
+                    <ComboBoxItem Content="Sacred Moon (from 358/2 Days)"/>
+                    <ComboBoxItem Content="Sacred Moon (from Birth by Sleep &amp; 358/2 Days Original Soundtrack)"/>
+                    <ComboBoxItem Content="Mystic Moon (from 358/2 Days)"/>
+                    <ComboBoxItem Content="Mystic Moon (from Birth by Sleep &amp; 358/2 Days Original Soundtrack)"/>
+                </ComboBox>
+                <ComboBox Name="NWB" Grid.Row="7" Grid.Column="1" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="NWB_SelectionChanged">
+                    <ComboBoxItem IsSelected="True" Content="Deep Drop (from Dream Drop Distance)"/>
+                    <ComboBoxItem Content="Deep Drive (from Kingdom Hearts II)"/>
+                    <ComboBoxItem Content="Deep Drive (from HD II.5 ReMIX)"/>
+                    <ComboBoxItem Content="Critical Drive (from 358/2 Days)"/>
+                    <ComboBoxItem Content="Critical Drive (from Birth by Sleep &amp; 358/2 Days Original Soundtrack)"/>
+                </ComboBox>
             </Grid>
         </Grid>
     </Grid>

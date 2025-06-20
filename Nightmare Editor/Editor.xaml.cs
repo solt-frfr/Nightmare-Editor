@@ -30,7 +30,7 @@ namespace Nightmare_Editor
     /// </summary>
     public partial class Editor : Window
     {
-        // "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d)|*.l2d|Effect Files(*.fep)|*.fep|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
+        // "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Layout 2D files(*.l2d)|*.l2d|Effect Files(*.fep)|*.fep|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
         private TextBox selectedTextBox;
         private TextBox selectedTextBox2;
         private TextBox selectedTextBox3;
@@ -128,7 +128,7 @@ namespace Nightmare_Editor
         {
             Directory.CreateDirectory($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\Current");
             OpenFileDialog file = new OpenFileDialog();
-            file.Filter = "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Texture Archive files(*.l2d)|*.l2d|Effect Files(*.fep)|*.fep|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
+            file.Filter = "Game Archive files (*.rbin)|*.rbin|Texture files(*.ctt)|*.ctt|Layout 2D files(*.l2d)|*.l2d|Effect Files(*.fep)|*.fep|Model files(*.pmo)|*.pmo|Map files(*.pmp)|*.pmp|All files (*.*)|*.*";
             file.Title = "Select a file to open...";
             file.ShowDialog();
             var filedata = file.OpenFile;
@@ -374,6 +374,11 @@ namespace Nightmare_Editor
                     {
                         Log.Text = $"Displaying {textBox.Text}";
                         AssignImage($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{textBox.Text}", 2);
+                    }
+                    else if (textBox.Text.EndsWith(".txa"))
+                    {
+                        AnimWindow anim = new AnimWindow($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{textBox.Text}");
+                        anim.Show();
                     }
                     else if (Directory.Exists($@"{System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\work\{Path.GetFileNameWithoutExtension(selectedTextBox.Text)}\{Path.GetFileNameWithoutExtension(textBox.Text)}\"))
                     {
@@ -730,7 +735,7 @@ namespace Nightmare_Editor
                     }
                     else if (textBox.Text.EndsWith(".l2d"))
                     {
-                        file.Filter = "Texture Archive files(*.l2d)|*.l2d";
+                        file.Filter = "Layout 2D files(*.l2d)|*.l2d";
                     }
                     else if (textBox.Text.EndsWith(".fep"))
                     {
@@ -854,7 +859,7 @@ namespace Nightmare_Editor
                     }
                     else if (textBox.Text.EndsWith(".l2d"))
                     {
-                        file.Filter = "Texture Archive files(*.l2d)|*.l2d";
+                        file.Filter = "Layout 2D files(*.l2d)|*.l2d";
                     }
                     else if (textBox.Text.EndsWith(".fep"))
                     {
@@ -1187,6 +1192,7 @@ namespace Nightmare_Editor
 
         private void Help_Click(object sender, RoutedEventArgs e)
         {
+            
             Help hw = new Help();
             hw.Show();
         }

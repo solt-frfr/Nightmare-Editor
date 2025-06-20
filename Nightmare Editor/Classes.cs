@@ -12,6 +12,11 @@ namespace Nightmare_Editor
         public List<string[]> Textures { get; set; }
     }
 
+    public class MusicList
+    {
+        public List<string[]> Music { get; set; }
+    }
+
     public class Meta
     {
         public string Name { get; set; }

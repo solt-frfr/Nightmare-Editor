@@ -13,9 +13,11 @@
 #### 
  **.moflex** files: Unfortunately, I don't have any programs to link to for these, but they *are* 3D movie files.
 #### 
- **.bcsar** and **.bcstm** files: These are sound archive files and sound files respectively. Citric Composer can edit these. Have fun!
+ **.bcsar** and **.bcstm** files: These are sound archive files and sound files respectively. Citric Composer can edit these. I found mu-wave to be the best tool for making new ones. Have fun!
 
  **https://github.com/Gota7/Citric-Composer**
+
+ **https://kazuki-4ys.github.io/web_apps/mu-wave/**
 #### 
  **.bcfnt**: As the name may suggest, these are font files. There's a couple editors I've seen online, but the one I personally use is NintyFont.
 

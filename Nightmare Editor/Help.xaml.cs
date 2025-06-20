@@ -68,6 +68,12 @@ namespace Nightmare_Editor
             ScrollToTop();
         }
 
+        private void Txa_Click(object sender, MouseButtonEventArgs e)
+        {
+            MD.Markdown = QuickRead("Help/Txa.md");
+            ScrollToTop();
+        }
+
         private void Pak_Click(object sender, MouseButtonEventArgs e)
         {
             MD.Markdown = QuickRead("Help/Pak.md");
