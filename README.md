@@ -1,3 +1,8 @@
+# This is an old beta, left up for archival purposes.
+Please go to https://github.com/solt-frfr/Nightmare-Editor-AUI for the latest version that features a more user-friendly experience and cross-platform compatibility.
+You can also view this project's website at https://ne.soltfrfr.fyi
+
+Original description is below:
 # Nightmare Editor
 
 ## About
